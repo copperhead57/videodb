@@ -245,7 +245,7 @@ function imdbData($imdbID)
             $data['title'] = trim($ary[1]);
             $data['subtitle'] = trim($ary[2]);
             $data['year'] = $ary[3];
-        } else if (preg_match('/<title>(.+?)\(TV (?:Series|Mini-Series) (\d+)\) - IMDB<\/title>/si', $resp['data'], $ary)){
+        } else if (preg_match('/<title>(.+?)\(TV (?:Series|Mini-Series) (\d+).+?- IMDB<\/title>/si', $resp['data'], $ary)){
             # handles a TV series.
             # split title - subtitle
             list($t, $s) = explode(' - ', $ary[1], 2);
