@@ -266,7 +266,7 @@ function imdb_replace_title_callback($matches)
         {
             $result .= ' <a href="show.php?id='.$sp_id.'"><img src="'.img('existing.gif').
                          '" title='.$sp_diskid.' valign="absmiddle" border="0" alt="Add Movie"/></a>';
-        }
+	}
 	}
 
 	$result .= $matches[3];
@@ -316,8 +316,18 @@ function fixup_HTML($html)
 	// title
     if (stristr($uri['host'], 'imdb'))
     {
-	$html = preg_replace_callback("/(<h1>)(.*?)(<span>)/si", 'imdb_replace_title_callback', $html);
+//old	$html = preg_replace_callback("/(<h1>)(.*?)(<span>)/si", 'imdb_replace_title_callback', $html);
+        $html = preg_replace_callback("/(<h1.*?.>)(.*?)(<\/h1>)/si", 'imdb_replace_title_callback', $html);
 
+//<div class="TitleBlock__SeriesParentLinkWrapper-sc-1nlhx7j-3 itQvtY"></div>
+//<h1 textlength="4" data-testid="hero-title-block__title" class="TitleHeader__TitleText-sc-1wu6n3d-0 dxSWFG">2012</h1>
+//preg_match("#(<div class=\"TitleBlock__SeriesParentLinkWrapper.*?.div>)#", $html, $m1);
+//preg_match("#(<h1.*?.>)(.*?.>)#", $html, $m2);
+        
+//            if (preg_match("#(<div class=\"TitleBlock__SeriesParentLinkWrapper.*?.div>)#", $html, $m)) 
+//            {
+//            $html = preg_replace_callback("/(<div class=\"TitleBlock__SeriesParentLinkWrapper.*?.div>)(<h1.*?.>)(.*?.<\/h1>)/si", 'imdb_replace_title_callback', $html);
+//            }
         // imdb form does not accept utf8
         $html = preg_replace("/(form\s+.*?)(>)/i", '\\1 accept-charset="ISO-8859-1" \\2', $html );
     }  
