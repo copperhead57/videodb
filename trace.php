@@ -483,7 +483,13 @@ function fixup_javascript($html)
         if ($partfilename <> '')
         {
             $file_path = './'.$cachefolder.'imdb-clone'.$partfilename.'.js';
-            $html = save_js_file($file_path, $js_file_name, $partfilename, $js_file_data, $html);
+            //add comment line to file and save to cache (overwritten if present) 
+            file_put_contents($file_path, '/* Processed by - replace_javascript_('.$partfilename.') : this files original name - '.$js_file_name.' */');
+            // save js data file to cache
+            file_put_contents($file_path, $js_file_data, FILE_APPEND);
+
+            $pattern = '#'.preg_quote($js_file_name, '#').'#';  // escape all delimitters in file name
+            $html = preg_replace($pattern,$file_path,$html);
         }
         // release file data from memory to avoid memory exceeeded error 
         $js_file_data = '';     
@@ -696,26 +702,6 @@ function replace_javascript_seasonyear ($js_file_data)
                                  $js_file_data);
     
     return $js_file_data;
-}
-/*  
- * common routine to 
- *  - append js original file name to js file
- *  - save js file with new name
- *  - replace js file name in htlm data
- *  - return htlm data  
- */
-function save_js_file($file_path, $js_file_name, $partfilename, $js_file_data, $html)
-{
-    //add comment line to file and save to cache (overwritten if present) 
-    file_put_contents($file_path, '/* Processed by - replace_javascript_('.$partfilename.') : this files original name - '.$js_file_name.' */');
-
-    // save js data file to cache
-    file_put_contents($file_path, $js_file_data, FILE_APPEND);
-    
-    $pattern = '#'.preg_quote($js_file_name, '#').'#';  // escape all delimitters in file name
-    $html = preg_replace($pattern,$file_path,$html);
-//echo "<BR> - pattern-".$pattern;
-    return $html;    
 }
 
 // make sure this is a local access
