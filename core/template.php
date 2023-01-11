@@ -157,6 +157,7 @@ function tpl_header($help = '', $title = '')
 		switch ($tab)
         {
 			case 'show':
+                                $header['request_uri'] = $_SERVER['REQUEST_URI'];
 			case 'edit':
 				if (!empty($id)) $header['active'] = $tab;
 				// uncomment this if you want the 'Browse' tab to remember last visited movie
