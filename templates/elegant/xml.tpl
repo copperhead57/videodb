@@ -5,7 +5,9 @@
     <title>VideoDB{if $title} - {$title}{/if}</title>
     <meta http-equiv="Content-Type" content="text/html; charset={$lang.encoding}" />
     {if $meta1} {$meta1} {/if}
+{* need to move out of tpl into php file
     {php}if (stristr($_SERVER['PHP_SELF'], "delete.php")) echo '<meta http-equiv="refresh"; content="1; url='.session_get('listview', 'index.php').'?'.strip_tags(SID).'">';{/php}
+*}
     <meta name="description" content="VideoDB" />
     <link rel="stylesheet" href="{$style}" type="text/css" />
     {if $rss}<link rel="alternate" type="application/rss+xml" title="VideoDB RSS" href="index.php?export=rss" />
