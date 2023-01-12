@@ -18,7 +18,12 @@ session_start();
  */
 function session_get($varname, $default=null)
 {
-    return ($_SESSION['vdb'][$varname]) ? $_SESSION['vdb'][$varname] : $default;
+    if (isset($_SESSION['vdb'][$varname]))
+    {
+        return $_SESSION['vdb'][$varname];
+    }
+    return $default;
+//    return ($_SESSION['vdb'][$varname]) ? $_SESSION['vdb'][$varname] : $default;
 }    
 
 /**

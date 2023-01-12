@@ -7,10 +7,8 @@ namespace Composer\Autoload;
 class ComposerStaticInite567bd5ff0cb1a3c97b67d63eae535f2
 {
     public static $files = array (
-        '5255c38a0faeba867671b61dfda6d864' => __DIR__ . '/..' . '/paragonie/random_compat/lib/random.php',
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
         'e69f7f6ee287b969198c3c9d6777bd38' => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer/bootstrap.php',
-        '023d27dca8066ef29e6739335ea73bad' => __DIR__ . '/..' . '/symfony/polyfill-php70/bootstrap.php',
         '25072dd6e2470089de65ae7bf11d3109' => __DIR__ . '/..' . '/symfony/polyfill-php72/bootstrap.php',
         'c964ee0ededf28c96ebd9db5099ef910' => __DIR__ . '/..' . '/guzzlehttp/promises/src/functions_include.php',
         'a0edc8309cc5e1d60e3047b5df6b7052' => __DIR__ . '/..' . '/guzzlehttp/psr7/src/functions_include.php',
@@ -23,7 +21,6 @@ class ComposerStaticInite567bd5ff0cb1a3c97b67d63eae535f2
         'S' => 
         array (
             'Symfony\\Polyfill\\Php72\\' => 23,
-            'Symfony\\Polyfill\\Php70\\' => 23,
             'Symfony\\Polyfill\\Intl\\Normalizer\\' => 33,
             'Symfony\\Polyfill\\Intl\\Idn\\' => 26,
         ),
@@ -43,10 +40,6 @@ class ComposerStaticInite567bd5ff0cb1a3c97b67d63eae535f2
         'Symfony\\Polyfill\\Php72\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-php72',
-        ),
-        'Symfony\\Polyfill\\Php70\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/symfony/polyfill-php70',
         ),
         'Symfony\\Polyfill\\Intl\\Normalizer\\' => 
         array (
@@ -103,18 +96,11 @@ class ComposerStaticInite567bd5ff0cb1a3c97b67d63eae535f2
     );
 
     public static $classMap = array (
-        'ArithmeticError' => __DIR__ . '/..' . '/symfony/polyfill-php70/Resources/stubs/ArithmeticError.php',
-        'AssertionError' => __DIR__ . '/..' . '/symfony/polyfill-php70/Resources/stubs/AssertionError.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
-        'DivisionByZeroError' => __DIR__ . '/..' . '/symfony/polyfill-php70/Resources/stubs/DivisionByZeroError.php',
-        'Error' => __DIR__ . '/..' . '/symfony/polyfill-php70/Resources/stubs/Error.php',
         'FPDF' => __DIR__ . '/..' . '/setasign/fpdf/fpdf.php',
         'Normalizer' => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer/Resources/stubs/Normalizer.php',
         'PEAR_Exception' => __DIR__ . '/..' . '/pear/pear_exception/PEAR/Exception.php',
-        'ParseError' => __DIR__ . '/..' . '/symfony/polyfill-php70/Resources/stubs/ParseError.php',
-        'SessionUpdateTimestampHandlerInterface' => __DIR__ . '/..' . '/symfony/polyfill-php70/Resources/stubs/SessionUpdateTimestampHandlerInterface.php',
         'Smarty' => __DIR__ . '/..' . '/smarty/smarty/libs/Smarty.class.php',
-        'SmartyBC' => __DIR__ . '/..' . '/smarty/smarty/libs/SmartyBC.class.php',
         'SmartyCompilerException' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smartycompilerexception.php',
         'SmartyException' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smartyexception.php',
         'Smarty_Autoloader' => __DIR__ . '/..' . '/smarty/smarty/libs/Autoloader.php',
@@ -154,7 +140,6 @@ class ComposerStaticInite567bd5ff0cb1a3c97b67d63eae535f2
         'Smarty_Internal_Compile_If' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smarty_internal_compile_if.php',
         'Smarty_Internal_Compile_Ifclose' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smarty_internal_compile_if.php',
         'Smarty_Internal_Compile_Include' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smarty_internal_compile_include.php',
-        'Smarty_Internal_Compile_Include_Php' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smarty_internal_compile_include_php.php',
         'Smarty_Internal_Compile_Insert' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smarty_internal_compile_insert.php',
         'Smarty_Internal_Compile_Ldelim' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smarty_internal_compile_ldelim.php',
         'Smarty_Internal_Compile_Make_Nocache' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smarty_internal_compile_make_nocache.php',
@@ -167,7 +152,6 @@ class ComposerStaticInite567bd5ff0cb1a3c97b67d63eae535f2
         'Smarty_Internal_Compile_Private_Modifier' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smarty_internal_compile_private_modifier.php',
         'Smarty_Internal_Compile_Private_Object_Block_Function' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smarty_internal_compile_private_object_block_function.php',
         'Smarty_Internal_Compile_Private_Object_Function' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smarty_internal_compile_private_object_function.php',
-        'Smarty_Internal_Compile_Private_Php' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smarty_internal_compile_private_php.php',
         'Smarty_Internal_Compile_Private_Print_Expression' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smarty_internal_compile_private_print_expression.php',
         'Smarty_Internal_Compile_Private_Registered_Block' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smarty_internal_compile_private_registered_block.php',
         'Smarty_Internal_Compile_Private_Registered_Function' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smarty_internal_compile_private_registered_function.php',
@@ -248,7 +232,6 @@ class ComposerStaticInite567bd5ff0cb1a3c97b67d63eae535f2
         'Smarty_Internal_Resource_Extends' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smarty_internal_resource_extends.php',
         'Smarty_Internal_Resource_File' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smarty_internal_resource_file.php',
         'Smarty_Internal_Resource_Php' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smarty_internal_resource_php.php',
-        'Smarty_Internal_Resource_Registered' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smarty_internal_resource_registered.php',
         'Smarty_Internal_Resource_Stream' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smarty_internal_resource_stream.php',
         'Smarty_Internal_Resource_String' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smarty_internal_resource_string.php',
         'Smarty_Internal_Runtime_CacheModify' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smarty_internal_runtime_cachemodify.php',
@@ -286,7 +269,6 @@ class ComposerStaticInite567bd5ff0cb1a3c97b67d63eae535f2
         'Smarty_Variable' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smarty_variable.php',
         'TPC_yyStackEntry' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smarty_internal_configfileparser.php',
         'TP_yyStackEntry' => __DIR__ . '/..' . '/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php',
-        'TypeError' => __DIR__ . '/..' . '/symfony/polyfill-php70/Resources/stubs/TypeError.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

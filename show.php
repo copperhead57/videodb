@@ -104,7 +104,8 @@ if ($ajax_update)
 // random view
 if (empty($id)) 
 {
-	$count  = 0;
+    $JOINS ='';
+    $count  = 0;
     $all    = strtoupper($lang['radio_all']);
     $WHERES = '';
     
@@ -147,7 +148,8 @@ if (empty($id))
     }
 
     // limit random to not unseen movies only
-    if ($config['showrandomunseen'])
+//    if (is_array($config['showrandomunseen']))
+    if (array_key_exists( 'showrandomunseen', $config ))
     {
         // WARNING: this may make the SQL query expensive for large databases
         $WHERES .= ' AND ('.TBL_DATA.'.id NOT IN (SELECT video_id FROM '.TBL_USERSEEN.'))';
@@ -279,6 +281,7 @@ if (!empty($id))
 		'id' => $id,
 		'title' => $video['title']);
 	$size = sizeof($breadcrumbs['crumbs']);
+        $i = 0;
 	for ($i; $i < $size-1; $i++) {
 		if ($breadcrumbs['crumbs'][$i]['id'] == $id) {
 			unset($breadcrumbs['crumbs'][$size-1]);

@@ -120,6 +120,9 @@ if ($filter == 'wanted') $mediafilter = MEDIA_WISHLIST;
 $WHERES = get_mediatype_sql(($mediafilter) ? $mediafilter : -1);
 
 // create SQL according to selected filter
+$ORDER = '';
+$LIMIT = '';
+$JOINS = '';
 switch ($filter)
 {
     case 'all':

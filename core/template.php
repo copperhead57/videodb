@@ -185,6 +185,7 @@ function tpl_header($help = '', $title = '')
     $smarty->assign('header',	$header);
     $smarty->assign('style',	$config['style']);
     $smarty->assign('langcode', $config['language']);
+    $smarty->assign('req_uri', $_SERVER['REQUEST_URI']);
 }
 
 /**
@@ -225,11 +226,11 @@ function tpl_filters($filter, $showtv)
 	
 	// create sorting selectbox
 	// Sorting is disabled when ordering by diskid is enabled
-	if(!$config['orderallbydisk']) {
-		$smarty->assign('order_options', array(-1 => $lang['title'], 1 => $lang['rating'], 2 => $lang['date']));
-		if(!$order) $order = session_get('order');
-		$smarty->assign('order',  $order);
-	} 
+//	if(!$config['orderallbydisk']) {
+//		$smarty->assign('order_options', array(-1 => $lang['title'], 1 => $lang['rating'], 2 => $lang['date']));
+//		if(!$order) $order = session_get('order');
+//		$smarty->assign('order',  $order);
+//	} 
 
 
     // enable dynamic columns in list view
@@ -475,7 +476,8 @@ function tpl_show($video)
     }
 
     // add episodes information
-    if (is_array($video['episodes']))
+ //   if (is_array($video['episodes']))
+    if (array_key_exists( 'episodes', $video ))
     {
         // allow multiple columns
         $smarty->assign('listcolumns', session_get('listcolumns'));
