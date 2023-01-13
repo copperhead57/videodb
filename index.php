@@ -153,9 +153,9 @@ switch ($filter)
                     $WHERES .= ' AND title RLIKE \''.utf8_encode($filter_expr[$filter]).'\'';# AND mediatype != '.MEDIA_WISHLIST;
 }
 
-if(!$ORDER)
+if(!isset($ORDER))
 {
-	if($order)
+	if(isset($order))
 	{
 		$ORDER = prepareOrder($order);
 		session_set('order', $order);
@@ -237,7 +237,7 @@ if ($export && array_key_exists($export, $config) && $config[$export])
     This is seperately assigned as a LIMIT so, if this exists, 
     lets just skip page numbers and carry on
 */
-if (!$LIMIT && ($config['pageno'] > 0) &! ($pageno == 'all'))
+if (!isset($LIMIT) && ($config['pageno'] > 0) &! ($pageno == 'all'))
 {
     // start at first page
     if (!$pageno) $pageno = ($deleteid) ? session_get('lastpageno', 1) : 1;

@@ -15,7 +15,9 @@
         <div id="filtersmoreless">
         	<span id="indicator1" style="display:none"><img src="{$template}images/spinner.gif" alt="{$lang.working}" /></span>
 
-            <a href="index.php?listcolumns={math equation="(columns>1)?columns-1:1" columns=$listcolumns}" listcolumns="{$listcolumns}" id="columns_less"><img src="{$template}images/minus2.png" class="button" /></a>
+            {if $listcolumns gt 1}<a href="index.php?listcolumns={math equation="columns-1" columns=$listcolumns}" listcolumns="{$listcolumns}" id="columns_less">{/if} 
+            <img src="{$template}images/minus2.png" class="button" />
+            {if $listcolumns gt 1}</a>{/if}
             <a href="index.php?listcolumns={math equation="columns+1" columns=$listcolumns}" id="columns_more"><img src="{$template}images/plus2.png"  class="button" /></a>
         </div>
         {/if}
