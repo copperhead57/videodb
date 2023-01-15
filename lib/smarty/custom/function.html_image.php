@@ -7,7 +7,8 @@
  * @author  Andreas Goetz   <cpuidle@gmx.de>
  */
 
-require_once('./vendor/james-heinrich/phpthumb/phpthumb.class.php');
+////require_once('./vendor/james-heinrich/phpthumb/phpthumb.class.php');
+require_once 'vendor/autoload.php';
 
 define('THUMB_CACHE_SOURCE', true);
 define('THUMB_CACHE_TARGET', true);
@@ -111,6 +112,8 @@ function generate_thumbnail(&$file, &$width, &$height, $max_width, $max_height, 
         $phpThumb = new phpThumb();
 
 		// use of truepath was added for php 5.4 apparently- otherwise thumbnail creation would inadvertantly fail
+        $phpThumb->config_cache_directory = '';
+        $phpThumb->src = '';
         $phpThumb->sourceFilename = truepath($file);
         $phpThumb->w = $max_width;
         $phpThumb->h = $max_height;
@@ -304,7 +307,7 @@ function smarty_function_html_image($params, $template)
          * - scale mode TUMB_REDUCE_ONLY and dimensions > target dimensions
          * - scale mode is any other numeric and filesize > scale mode
          */
-        if ($max_width && $max_height && !$no_scaling)
+        if ($max_width && $max_height && !isset($no_scaling))
         {
             // even if thumbnails are not generated we should get aspect ratio right
             if ($config['thumbnail_level'] == TUMB_NO_SCALE)

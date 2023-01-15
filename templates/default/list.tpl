@@ -42,7 +42,7 @@
         <br />
     {foreach item=itemlang from=$video.language}
         {if $itemlang}<a href="search.php?q={$itemlang|escape:url}&fields=language">
-            {if $video.flagfile[$itemlang]}
+            {if isset($video.flagfile[$itemlang])}
                 <img src="{$video.flagfile[$itemlang]}" border="0" alt="{$itemlang}"/>
             {else}
                 {$itemlang}

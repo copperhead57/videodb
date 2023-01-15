@@ -10,7 +10,7 @@
 	<td><a href="#top"><img src="images/top.gif" alt=""/></a></td>
 	<td style="text-align:center" nowrap="nowrap">
 		<span class="version">
-		{if $pageno && $maxpageno}
+		{if isset($pageno) && issset($maxpageno)}
 			{if $pageno != 1}<a href="?pageno={$pageno-1}">&#171;</a>{/if}
 			Page {$pageno} of {$maxpageno}
 			{if $pageno != $maxpageno}<a href="?pageno={$pageno+1}">&#187;</a>{/if}

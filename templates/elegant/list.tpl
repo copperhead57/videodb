@@ -17,7 +17,7 @@
 {*include file="covereffect.tpl"*}
 
 <div id="content">
-{counter start=0 print=false name=videocount}
+{counter assign=count start=0 print=false name=videocount}
 {foreach $list as $video}
 {if $count == 0}
     {cycle values="listeven,listodd" assign=CLASS print=false}
@@ -73,7 +73,7 @@
                     <div class="list_language">
                         {foreach $video.language as $itemlang}
                             {if $itemlang}<a href="search.php?q={$itemlang|escape:url}&amp;fields=language">
-                                {if $video.flagfile[$itemlang]}
+                                {if isset($video.flagfile[$itemlang])}
                                     <img src="{$video.flagfile[$itemlang]}" alt="{$itemlang}"/>
                                 {else}
                                     {$itemlang}

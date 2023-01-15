@@ -17,7 +17,7 @@
 <div id="docpart_list_target">
 
 <table id="listitems" cellpadding=0 cellspacing=0>
-{counter start=0 print=false name=videocount}
+{counter assign=count start=0 print=false name=videocount}
 {foreach item=video from=$list}
 
 {if $count == 0}
@@ -62,7 +62,7 @@
 *}
                 {foreach item=itemlang from=$video.language}
                     {if $itemlang}<a href="search.php?q={$itemlang|escape:url}&fields=language">
-                        {if $video.flagfile[$itemlang]}
+                        {if isset($video.flagfile[$itemlang])}
                             <img src="{$video.flagfile[$itemlang]}" alt="{$itemlang}"/>
                         {else}
                             {$itemlang}
