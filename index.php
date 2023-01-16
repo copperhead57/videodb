@@ -123,6 +123,7 @@ $WHERES = get_mediatype_sql(($mediafilter) ? $mediafilter : -1);
 $JOINS = '';
 $LIMIT = '';
 
+// create SQL according to selected filter
 switch ($filter)
 {
     case 'all':
@@ -153,7 +154,7 @@ switch ($filter)
                     // make sure filter is valid
                     if (!array_key_exists($filter, $filter_expr)) $filter = 'ABC';
                     // apply filter
-                    $WHERES .= ' AND title RLIKE \''.utf8_encode($filter_expr[$filter]).'\'';# AND mediatype != '.MEDIA_WISHLIST;
+                    $WHERES .= ' AND title RLIKE \''.mb_convert_encoding($filter_expr[$filter], 'UTF-8', 'ISO-8859-1').'\'';# AND mediatype != '.MEDIA_WISHLIST;
 }
 
 if(!isset($ORDER))
@@ -210,6 +211,7 @@ if ($ajax_quicksearch)
                 LIMIT 20";
     $result = runSQL($SQL);
 
+    $ret = '';
     foreach ($result as $item)
     {
         $title  = preg_replace('/('.$ajax_quicksearch.')/i', '<em>\1</em>', $item['title']);
@@ -240,7 +242,7 @@ if ($export && array_key_exists($export, $config) && $config[$export])
     This is seperately assigned as a LIMIT so, if this exists, 
     lets just skip page numbers and carry on
 */
-if (!isset($LIMIT) && ($config['pageno'] > 0) &! ($pageno == 'all'))
+if ($LIMIT == '' && ($config['pageno'] > 0) &! ($pageno == 'all'))
 {
     // start at first page
     if (!$pageno) $pageno = ($deleteid) ? session_get('lastpageno', 1) : 1;

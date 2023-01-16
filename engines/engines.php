@@ -360,7 +360,7 @@ function engine_get_capability($engine, $searchtype)
     // get the meta information
     $engine = $config['engines'][$engine];
 
-    if (is_array($engine['capabilities']))
+    if (array_key_exists( 'capabilities', $engine))
     {
         return in_array($searchtype, $engine['capabilities']);
     }
