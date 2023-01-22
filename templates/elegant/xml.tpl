@@ -8,7 +8,7 @@
     {php}if (stristr($_SERVER['PHP_SELF'], "delete.php")) echo '<meta http-equiv="refresh"; content="1; url='.session_get('listview', 'index.php').'?'.strip_tags(SID).'">';{/php}
     <meta name="description" content="VideoDB" />
     <link rel="stylesheet" href="{$style}" type="text/css" />
-    {if $rss}<link rel="alternate" type="application/rss+xml" title="VideoDB RSS" href="index.php?export=rss" />
+    {if isset($rss)}<link rel="alternate" type="application/rss+xml" title="VideoDB RSS" href="index.php?export=rss" />
     {/if}<link rel="shortcut icon" href="images/icons/1-favicon.ico" type="image/ico" />
     <script src="./javascript/prototype/prototype.js" type="text/javascript"></script>
     <script src="./javascript/scriptaculous/scriptaculous.js?load=effects,controls" type="text/javascript"></script>

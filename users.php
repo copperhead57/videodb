@@ -77,6 +77,7 @@ elseif ($adultflag) $perm |= PERM_ADULT;
 if ($writeflag) $perm |= PERM_READ + PERM_WRITE;
 elseif ($readflag) $perm |= PERM_READ;
 
+$message = '';
 // new user?
 if ($newuser)
 {

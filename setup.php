@@ -64,8 +64,16 @@ elseif ($save)
             // convert languages array back into string
             $val = @join('::', req_array('adultgenres'));
         }
-
-		$SQL = 'REPLACE INTO '.TBL_CONFIG." (opt, value) VALUES ('$opt', '" . escapeSQL($val) . "')";
+        if ($opt == 'listcolumns') {
+            // save for loading into session
+            $listcolumns = $val;
+        }
+        if ($opt == 'showtv') {
+            // save for loading into session
+            $showtv = $val;               
+        }
+        
+        $SQL = 'REPLACE INTO '.TBL_CONFIG." (opt, value) VALUES ('$opt', '" . escapeSQL($val) . "')";
         runSQL($SQL);
     }
     
