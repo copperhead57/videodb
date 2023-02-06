@@ -17,8 +17,8 @@
         <a href="https://github.com/andig/videodb.git">videoDB</a>
     </div>
     <ul id="headernav2">
-        {if $header.login}<li><div id="logologin"><a href="{$header.login}">{if $loggedin}{$lang.logout}{else}{$lang.login}{/if}</a>
-        {if $loggedin}({$lang.loggedinas} {$loggedin}){/if}</div></li>{/if}
+        {if isset($header.login)}<li><div id="logologin"><a href="{$header.login}">{if isset($loggedin)}{$lang.logout}{else}{$lang.login}{/if}</a>
+        {if isset($loggedin)}({$lang.loggedinas} {$loggedin}){/if}</div></li>{/if}
 
         {if $header.profile}<li><div id="logoprofile"><a href="{$header.profile}">{$lang.profile}</a></div></li>{/if}
         {if $header.help}<li><div id="logohelp"><a href="{$header.help}">{$lang.help}</a></div></li>{/if}
@@ -41,9 +41,9 @@
         {if $header.contrib}<li class="{if $header.active == 'contrib'}tabActive{else}tabInactive{/if}"><a href="{$header.contrib}">{$lang.contrib}</a></li>{/if}
         {if $header.setup}<li class="{if $header.active == 'setup'}tabActive{else}tabInactive{/if}"><a href="{$header.setup}">{$lang.setup}</a></li>{/if}
 
-        {if $header.profile}<li class="{if $header.active == 'profile'}tabActive{else}tabInactive{/if}"><div id="headerprofile"<a href="{$header.profile}">{$lang.profile}</a></div></li>{/if}
-        {if $header.help}<li class="{if $header.active == 'help'}tabActive{else}tabInactive{/if}"><div id="headerhelp"><a href="{$header.help}">{$lang.help}</a></div></li>{/if}
-        {if $header.login}<li class="{if $header.active == 'login'}tabActive{else}tabInactive{/if}"><div id="headerlogin"><a href="{$header.login}">{if $loggedin}{$lang.logout}{else}{$lang.login}{/if}</a></div></li>{/if}
+        {if isset($header.profile)}<li class="{if $header.active == 'profile'}tabActive{else}tabInactive{/if}"><div id="headerprofile"<a href="{$header.profile}">{$lang.profile}</a></div></li>{/if}
+        {if isset($header.help)}<li class="{if $header.active == 'help'}tabActive{else}tabInactive{/if}"><div id="headerhelp"><a href="{$header.help}">{$lang.help}</a></div></li>{/if}
+        {if isset($header.login)}<li class="{if $header.active == 'login'}tabActive{else}tabInactive{/if}"><div id="headerlogin"><a href="{$header.login}">{if isset($loggedin)}{$lang.logout}{else}{$lang.login}{/if}</a></div></li>{/if}
     </ul>
     <!-- /headernav -->
 </div>

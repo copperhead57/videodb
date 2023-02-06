@@ -38,6 +38,6 @@
 
 	{if $header.help}<span class="{if $header.active == 'help'}tabActive{else}tabInactive{/if}"><a href="{$header.help}">{$lang.help}</a></span>{/if}
 
-	{if $header.login}<span class="{if $header.active == 'login'}tabActive{else}tabInactive{/if}"><a href="{$header.login}">{if $loggedin}{$lang.logout}{else}{$lang.login}{/if}</a></span>{/if}
+	{if isset($header.login)}<span class="{if $header.active == 'login'}tabActive{else}tabInactive{/if}"><a href="{$header.login}">{if isset($loggedin)}{$lang.logout}{else}{$lang.login}{/if}</a></span>{/if}
 
 </div>

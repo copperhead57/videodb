@@ -125,7 +125,7 @@ elseif ($del && $del_correct)
     // clear permissions
     runSQL('DELETE FROM '.TBL_PERMISSIONS.' WHERE from_uid = '.$del);
     
-	$message = $lang['msg_userdel'];
+    $message = $lang['msg_userdel'];
     $smarty->assign('alert', true);
 }
 
@@ -156,6 +156,7 @@ foreach ($result as $user)
 clear_permission_cache();
 
 // prepare templates
+if (isset($id)) {unset($id);} // unset as template wants videodata id not user id
 tpl_page('usermanager');
 
 $smarty->assign('userlist', $userlist);

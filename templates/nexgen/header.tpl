@@ -171,7 +171,7 @@
 
 			{if $header.login}
 			<li>
-				<a href="{$header.login}">{if $loggedin}{$lang.logout}{else}{$lang.login}{/if}</a>
+				<a href="{$header.login}">{if isset($loggedin)}{$lang.logout}{else}{$lang.login}{/if}</a>
 			</li>
 			{/if}
 		</ul>

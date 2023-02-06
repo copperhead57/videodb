@@ -148,8 +148,10 @@ function load_config($force_reload = false)
 {
 	global $config, $lang, $smarty;
     // configuration cached and not outdated?
-    if (!$force_reload && !$config['recompile'] && session_get('config') &&
-       (session_get('config_userid') === $_COOKIE['VDBuserid']) &&
+    if (array_key_exists('recompile',$config)){$recompile = $config['recompile'];} else {$recompile = 0;}
+    if (array_key_exists('VDBuserid',$_COOKIE)){$vdbuserid = $_COOKIE['VDBuserid'];} else {$vdbuserid = null;}
+    if (!$force_reload && !$recompile && session_get('config') &&
+       (session_get('config_userid') === $vdbuserid) &&
        (session_get('config_timestamp') == filemtime(CONFIG_FILE)))
     {
         // load from cache
@@ -178,7 +180,8 @@ function load_config($force_reload = false)
 
         // get user config options from the database
         // does not use get_current_user_id() to allow fallback to login page after loading config
-        if (is_numeric($user_id = $_COOKIE['VDBuserid']))
+        if (array_key_exists('VDBuserid',$_COOKIE)){$vdbuserid = $_COOKIE['VDBuserid'];} else {$vdbuserid = null;}
+        if (is_numeric($user_id = $vdbuserid))
         {
             // store user id in session to identify reload point for config
             session_set('config_userid', $user_id);
@@ -528,7 +531,7 @@ function login_as($userid, $permanent = false)
     $CookieCode = get_user_hash($userid); 
     if(!$CookieCode) $CookieCode = rand(100000000, 999999999);
     // permanent cookie: 1 year, otherwise session only
-    $validtime  = ($permanent) ? time() + 60*60*24*365 : null;
+    $validtime  = ($permanent) ? time() + 60*60*24*365 : 0;
     $username   = get_username($userid);
 
     // get script folder for cookie path
@@ -581,16 +584,17 @@ function auth_check($redirect = true)
     }
 
     // auth check only in multiuser mode
-    if ($config['multiuser'] && ($_COOKIE['VDBuserid'] !== $config['guestid']))
+    if (array_key_exists('VDBuserid',$_COOKIE)){$vdbuserid = $_COOKIE['VDBuserid'];} else {$vdbuserid = null;}
+    if ($config['multiuser'] && ($vdbuserid !== $config['guestid']))
     {
         $result = false;
 
         $referer = substr($_SERVER['PHP_SELF'], strrpos($_SERVER['PHP_SELF'],'/')+1) .'?'. $_SERVER['QUERY_STRING'];
 
         // already logged in?
-        $userid = $_COOKIE['VDBuserid'];
-        $user   = $_COOKIE['VDBusername'];
-        $pass   = $_COOKIE['VDBpassword'];
+        if (array_key_exists('VDBuserid',$_COOKIE)){$userid = $_COOKIE['VDBuserid'];} else {$userid = 0;}
+        if (array_key_exists('VDBusername',$_COOKIE)){$user   = $_COOKIE['VDBusername'];} else {$user = '';}
+        if (array_key_exists('VDBpassword',$_COOKIE)){$pass   = $_COOKIE['VDBpassword'];}
 
         // auth cookies present?
         if (preg_match('/[a-z]+/i', $user) && preg_match('/[0-9]+/', $pass) && is_numeric($userid))
@@ -733,8 +737,11 @@ function check_permission($permission, $destUserId = null)
 
     // Cross-user permissions for target user
     if ($destUserId && $destUserId !== PERM_ALL)
-    {        
-        $permissions |= $_SESSION['vdb']['permissions']['to_uid'][$destUserId];
+    {
+        if (array_key_exists($destUserId, $_SESSION['vdb']['permissions']['to_uid']))
+        {
+            $permissions |= $_SESSION['vdb']['permissions']['to_uid'][$destUserId];
+        }
  
         // checking for _any_ cross-user permission? e.g. used for availability of "New", "Search"
         if (($destUserId == PERM_ANY) && ($permissions & $permission) == 0)
@@ -936,7 +943,8 @@ function set_userseen($id, $seen)
 function get_current_user_id()
 {
     // make sure userid is numeric- preventing SQL injection attacs
-    if (!is_numeric($userid = $_COOKIE['VDBuserid'])) $userid = 0;
+    if (array_key_exists('VDBuserid',$_COOKIE)){$vdbuserid = $_COOKIE['VDBuserid'];} else {$vdbuserid = null;}
+    if (!is_numeric($userid = $vdbuserid)) $userid = 0;
 #    errorpage('Security Error', 'Invalid user id in cookie: '.$userid, true);
     return $userid;
 }
