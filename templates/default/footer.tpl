@@ -10,7 +10,7 @@
           <a href="#top"><img src="images/top.gif" border="0" alt="" class="toplink" /></a>
         </td>
         <td align="left" style="text-align:left">
-          {if !empty($loggedin)}
+          {if $loggedin}
             <span class="version">{$lang.loggedinas} {$loggedin}</span>
           {/if}
         </td>

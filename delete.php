@@ -72,7 +72,6 @@ if ($redirect)
 tpl_page();
 
 // display templates
-$smarty->assign('delete_meta', '<meta http-equiv="refresh"; content="1; url='.session_get('listview', 'index.php').'?'.strip_tags(SID).'">');
 tpl_display('delete.tpl');
 
 

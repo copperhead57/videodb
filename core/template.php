@@ -157,7 +157,6 @@ function tpl_header($help = '', $title = '')
 		switch ($tab)
         {
 			case 'show':
-                                $header['request_uri'] = $_SERVER['REQUEST_URI'];
 			case 'edit':
 				if (!empty($id)) $header['active'] = $tab;
 				// uncomment this if you want the 'Browse' tab to remember last visited movie
@@ -227,7 +226,7 @@ function tpl_filters($filter, $showtv)
 	// Sorting is disabled when ordering by diskid is enabled
 	if(!$config['orderallbydisk']) {
 		$smarty->assign('order_options', array(-1 => $lang['title'], 1 => $lang['rating'], 2 => $lang['date']));
-		if(!isset($order)) $order = session_get('order');
+		if(!$order) $order = session_get('order');
 		$smarty->assign('order',  $order);
 	} 
 
@@ -475,7 +474,7 @@ function tpl_show($video)
     }
 
     // add episodes information
-    if (array_key_exists('episodes', $video) && is_array($video['episodes']))
+    if (is_array($video['episodes']))
     {
         // allow multiple columns
         $smarty->assign('listcolumns', session_get('listcolumns'));
