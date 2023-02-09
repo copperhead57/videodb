@@ -8,16 +8,16 @@
 <div id="footer" style="clear:both;">
 
     <div id="footerimage">
-        {if isset($pdf)}
+        {if !empty($pdf)}
             <a href="{$pdf}export=pdf&amp;ext=.pdf"><img src="images/pdfexport.png" /></a>
         {/if}
-        {if isset($xls)}
+        {if !empty($xls)}
             <a href="{$xls}export=xls&amp;ext=.xls"><img src="images/xlsexport.png" /></a>
         {/if}
-        {if isset($xml)}
+        {if !empty($xml)}
             <a href="{$xml}export=xml" target="_blank"><img src="images/xmlexport.png" /></a>
         {/if}
-        {if isset($rss)}
+        {if !empty($rss)}
             <a href="{$rss}export=rss" target="_blank"><img src="images/rssexport.png" /></a>
         {/if}
     </div>
@@ -35,7 +35,7 @@
             {if $pageno != $maxpageno}<a href="?pageno={$pageno+1}">&#187;</a>{/if}
             &nbsp;
         {/if}
-		{if isset($totalresults)}<span id="count">{$totalresults}</span> {$lang.records}.{/if}
+		{if !empty($totalresults)}<span id="count">{$totalresults}</span> {$lang.records}.{/if}
     </div>
 {*
     {if $loggedin}<span> {$lang.loggedinas} {$loggedin}</span>{/if}

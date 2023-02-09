@@ -16,21 +16,21 @@
 			{if $pageno != $maxpageno}<a href="?pageno={$pageno+1}">&#187;</a>{/if}
 			&nbsp;
 		{/if}
-                        {if isset($totalresults)}<span id="count">{$totalresults}</span> {$lang.records}.{/if}
+                        {if !empty($totalresults)}<span id="count">{$totalresults}</span> {$lang.records}.{/if}
 		</span>
 	</td>
 
 	<td align="right" style="text-align:right" nowrap="nowrap">
-		{if isset($pdf)}
+		{if !empty($pdf)}
 			<a href="{$pdf}export=pdf&ext=.pdf"><img src="images/pdfexport.png" style="float:right;margin-left:3px;"/></a>
 		{/if}
-		{if isset($xls)}
+		{if !empty($xls)}
 			<a href="{$xls}export=xls&ext=.xls"><img src="images/xlsexport.png" style="float:right;margin-left:3px;"/></a>
 		{/if}
-		{if isset($xml)}
+		{if !empty($xml)}
 			<a href="{$xml}export=xml" target="_blank"><img src="images/xmlexport.png" style="float:right;margin-left:3px;"/></a>
 		{/if}
-		{if isset($rss)}
+		{if !empty($rss)}
 			<a href="{$rss}export=rss" target="_blank"><img src="images/rssexport.png" style="float:right;margin-left:3px;"/></a>
 		{/if}
 		<a href="https://github.com/andig/videodb.git" class="splitbrain">v.{$version|strip}</a>{if $loggedin}<span class="version">, {$lang.loggedinas} {$loggedin}</span>{/if}
