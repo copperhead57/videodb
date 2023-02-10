@@ -180,8 +180,7 @@ function load_config($force_reload = false)
 
         // get user config options from the database
         // does not use get_current_user_id() to allow fallback to login page after loading config
-        if (array_key_exists('VDBuserid',$_COOKIE)){$vdbuserid = $_COOKIE['VDBuserid'];} else {$vdbuserid = null;}
-        if (is_numeric($user_id = $vdbuserid))
+        if (array_key_exists('VDBuserid',$_COOKIE) && is_numeric($user_id = $_COOKIE['VDBuserid']))        
         {
             // store user id in session to identify reload point for config
             session_set('config_userid', $user_id);
@@ -584,8 +583,7 @@ function auth_check($redirect = true)
     }
 
     // auth check only in multiuser mode
-    if (array_key_exists('VDBuserid',$_COOKIE)){$vdbuserid = $_COOKIE['VDBuserid'];} else {$vdbuserid = null;}
-    if ($config['multiuser'] && ($vdbuserid !== $config['guestid']))
+    if ($config['multiuser'] && ( array_key_exists('VDBuserid',$_COOKIE) && ($_COOKIE['VDBuserid'] !== $config['guestid'])  ))
     {
         $result = false;
 
@@ -713,7 +711,7 @@ function check_permission($permission, $destUserId = null)
     if (!($userid = get_current_user_id())) return false;
 
     // check if permissions cache is initialized
-    if (!is_array($_SESSION['vdb']['permissions']))
+    if (!array_key_exists('permissions',$_SESSION['vdb']) || !is_array($_SESSION['vdb']['permissions']))
     {
         $_SESSION['vdb']['permissions'] = array();
         $_SESSION['vdb']['permissions']['to_uid'] = array();
@@ -943,8 +941,7 @@ function set_userseen($id, $seen)
 function get_current_user_id()
 {
     // make sure userid is numeric- preventing SQL injection attacs
-    if (array_key_exists('VDBuserid',$_COOKIE)){$vdbuserid = $_COOKIE['VDBuserid'];} else {$vdbuserid = null;}
-    if (!is_numeric($userid = $vdbuserid)) $userid = 0;
+    if (array_key_exists('VDBuserid',$_COOKIE) && !is_numeric($userid = $_COOKIE['VDBuserid'])) $userid = 0;
 #    errorpage('Security Error', 'Invalid user id in cookie: '.$userid, true);
     return $userid;
 }

@@ -88,7 +88,7 @@ function setup_mkOptions($isprofile = false)
         $setup[] = setup_addOption($isprofile, 'engine'.$engine, 'boolean', null, $enabled, $title, $helptext);
 
         // add engine-specific options
-        if (array_key_exists('config', $meta))
+        if (array_key_exists('config', $meta) && is_array($meta['config']))
         {
             foreach ($meta['config'] as $setting)
             {
@@ -137,7 +137,7 @@ function setup_additionalSettings()
     foreach ($config['engines'] as $engine => $meta)
     {
         // add engine-specific options
-        if (array_key_exists('config', $meta))
+        if (array_key_exists('config', $meta) && is_array($meta['config']))
         {
             foreach ($meta['config'] as $setting)
             {
