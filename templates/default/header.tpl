@@ -30,6 +30,7 @@
 	  {if !empty($header.setup)}[&nbsp;<a href="{$header.setup}">{$lang.setup}</a>&nbsp;] {/if}
 	  {if !empty($header.profile)}[&nbsp;<a href="{$header.profile}">{$lang.profile}</a>&nbsp;] {/if}
 	  {if !empty($header.help)}[&nbsp;<a href="{$header.help}" accesskey="h">{$lang.help}</a>&nbsp;] {/if}
+	  {if !empty($header.login)}[&nbsp;<a href="{$header.login}" accesskey="l">{if !empty($loggedin)}{$lang.logout}{else}{$lang.login}{/if}</a>&nbsp;]{/if}
 	</td>
   </tr>
 </table>
