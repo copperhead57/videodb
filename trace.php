@@ -139,8 +139,13 @@ function _replace_enclosed_tag_traced($matches)
 	$url = preg_replace("/&".session_name()."=[\d|\w]+$/", '', $url);
 
 	// show anchor translation if debugging
+ /*
+ * ***********
+ * DO NOT PUT THIS IS PRODUCTION ***********************
+ * ***********
+ * temporalily commented out to stop error in page rendering on episode list page
 	$note = ($config['debug']) ? "($matches[2] -> $url)" : '';
-
+*/
 	// enable _top navigation for iframe mode
 	$top = ($iframe) ? ' target="_top"' : '';
 
