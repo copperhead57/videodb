@@ -73,7 +73,7 @@ elseif ($save)
             $showtv = $val;               
         }
         
-		$SQL = 'REPLACE INTO '.TBL_CONFIG." (opt, value) VALUES ('$opt', '" . escapeSQL($val) . "')";
+        $SQL = 'REPLACE INTO '.TBL_CONFIG." (opt, value) VALUES ('$opt', '" . escapeSQL($val) . "')";
         runSQL($SQL);
     }
     
