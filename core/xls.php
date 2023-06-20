@@ -52,31 +52,31 @@ function xlsexport($WHERE)
 
     // Creating a worksheet
     $sheetTitle = ($config['xls_sheet_title']) ? $config['xls_sheet_title'] : 'VideoDB';
-    $worksheet =& $workbook->addWorksheet($sheetTitle);
+    $worksheet = $workbook->addWorksheet($sheetTitle);
 
     // format templates
-    $alignLeftFormatNormal   =& $workbook->addFormat();
-    $alignLeftFormatLent     =& $workbook->addFormat(array('Pattern' => 1));
+    $alignLeftFormatNormal   = $workbook->addFormat();
+    $alignLeftFormatLent     = $workbook->addFormat(array('Pattern' => 1));
     $alignLeftFormatLent     -> setFGColor(14);
-    $alignRightFormatNormal  =& $workbook->addFormat(array('Align' => 'right'));
-    $alignRightFormatLent    =& $workbook->addFormat(array('Align' => 'right', 'Pattern' => 1));
+    $alignRightFormatNormal  = $workbook->addFormat(array('Align' => 'right'));
+    $alignRightFormatLent    = $workbook->addFormat(array('Align' => 'right', 'Pattern' => 1));
     $alignRightFormatLent    -> setFgColor(14);
-    $alignCenterFormatNormal =& $workbook->addFormat(array('Align' => 'center'));
-    $alignCenterFormatLent   =& $workbook->addFormat(array('Align' => 'center', 'Pattern' => 1));
+    $alignCenterFormatNormal = $workbook->addFormat(array('Align' => 'center'));
+    $alignCenterFormatLent   = $workbook->addFormat(array('Align' => 'center', 'Pattern' => 1));
     $alignCenterFormatLent   -> setFgColor(14);
-    $titleFormatNormal       =& $workbook->addFormat(array('Bold' => 1));
-    $titleFormatUnseen       =& $workbook->addFormat(array('Bold' => 1, 'Pattern' => 1));
+    $titleFormatNormal       = $workbook->addFormat(array('Bold' => 1));
+    $titleFormatUnseen       = $workbook->addFormat(array('Bold' => 1, 'Pattern' => 1));
     $titleFormatUnseen       -> setFgColor(13);
-    $titleFormatLent         =& $workbook->addFormat(array('Bold' => 1, 'Pattern' => 1));
+    $titleFormatLent         = $workbook->addFormat(array('Bold' => 1, 'Pattern' => 1));
     $titleFormatLent         -> setFgColor(14);
 
-    $plotFormatNormal        =& $workbook->addFormat(array('Align' => 'top'));
+    $plotFormatNormal        = $workbook->addFormat(array('Align' => 'top'));
     $plotFormatNormal        -> setTextWrap();
-    $plotFormatLent          =& $workbook->addFormat(array('Align' => 'top','Pattern' => 1));
+    $plotFormatLent          = $workbook->addFormat(array('Align' => 'top','Pattern' => 1));
     $plotFormatLent          -> setTextWrap();
     $plotFormatLent          -> setFgColor(14);
 
-    $headlineFormat          =& $workbook->addFormat(array('Bold' => 1, 'Align' => 'center', 'Pattern' => 1));
+    $headlineFormat          = $workbook->addFormat(array('Bold' => 1, 'Align' => 'center', 'Pattern' => 1));
     $headlineFormat          ->setFgColor(12);
 
     $rowindex    = 0;
