@@ -437,6 +437,14 @@ function fixup_javascript($html)
 //echo "<br>x is ".$x."  file name - ".$js_file;
         $js_file_data = file_get_contents($js_file_name);
         
+        // New version of episode list page
+        $pattern = '#'.preg_quote('SeasonsTab="tab-seasons"', '#').'#';  // add escape delimiters
+        if (preg_match($pattern, $js_file_data, $matches) )
+        {
+            $js_file_data = replace_javascript_seasonyear_v2 ($js_file_data);
+            $partfilename .= '-seasonyearV2';
+        }
+
         // for season, year change drop down list on episode list
         $pattern = '#bySeason#';
         if (preg_match($pattern, $js_file_data, $matches) )
@@ -691,6 +699,27 @@ function replace_javascript_seasonyear ($js_file_data)
                                  $matches[1].'"trace.php?'.$iframe_val.'&videodburl=https://www.imdb.com"+'.$matches[2],
                                  $js_file_data);
     
+    return $js_file_data;
+}
+
+function replace_javascript_seasonyear_v2 ($js_file_data)
+{
+    global $iframe;
+//echo "<br> in replace_javascript_seasonyear";
+//echo "<br>".$js_file_name; echo "   ".$cachefolder;
+    // allow for iframe templates
+    $iframe_val = '';
+    if ($iframe) $iframe_val = "&iframe=".$iframe;
+
+   //string -    "/title/"
+    $pattern = '#(")(/title/")#';
+//echo "<br>".$pattern;
+    preg_match($pattern, $js_file_data, $matches);
+//echo "<br> js file - find for season"; var_dump($matches);
+    $js_file_data = preg_replace($pattern,
+                                 $matches[1].'http://".concat(window.location.host).concat(window.location.pathname).concat("?'.$iframe_val.'&videodburl=https://www.imdb.com'.$matches[2].')',
+                                 $js_file_data);
+
     return $js_file_data;
 }
 
