@@ -441,8 +441,11 @@ function fixup_javascript($html)
         $pattern = '#'.preg_quote('SeasonsTab="tab-seasons"', '#').'#';  // add escape delimiters
         if (preg_match($pattern, $js_file_data, $matches) )
         {
-            $js_file_data = replace_javascript_seasonyear_v2 ($js_file_data);
-            $partfilename .= '-seasonyearV2';
+            list($a, $b) = replace_javascript_episodelist ($js_file_data, $html);
+            $js_file_data = $a;
+            $html = $b;
+  //          list($js_file_data, $html) = replace_javascript_eposidelist ($js_file_data, $html);
+            $partfilename .= '-eposidelist';
         }
 
         // for season, year change drop down list on episode list
@@ -702,15 +705,16 @@ function replace_javascript_seasonyear ($js_file_data)
     return $js_file_data;
 }
 
-function replace_javascript_seasonyear_v2 ($js_file_data)
+function replace_javascript_episodelist ($js_file_data, $html)
 {
     global $iframe;
-//echo "<br> in replace_javascript_seasonyear";
+//echo "<br> in replace_javascript_episodelist";
 //echo "<br>".$js_file_name; echo "   ".$cachefolder;
     // allow for iframe templates
     $iframe_val = '';
     if ($iframe) $iframe_val = "&iframe=".$iframe;
-
+    
+   // fix navigation
    //string -    "/title/"
     $pattern = '#(")(/title/")#';
 //echo "<br>".$pattern;
@@ -720,7 +724,76 @@ function replace_javascript_seasonyear_v2 ($js_file_data)
                                  $matches[1].'http://".concat(window.location.host).concat(window.location.pathname).concat("?'.$iframe_val.'&videodburl=https://www.imdb.com'.$matches[2].')',
                                  $js_file_data);
 
-    return $js_file_data;
+    // add - add and show episode
+    // get js code to clone
+    //isReleased&&(0,a.jsx)(lt,{onClick:function(){return l(!0)},width:"no-padding",children:m({id:"common_buttons_watchOptions",defaultMessage:"Watch options"}
+    //111111111111222222222222223333333333333333333333333333333333333333333333333333444444444444444555555555555555555555555555566666666666666667777777777777777
+    $pattern_check = '#'.preg_quote('(isReleased&&0,a.jsx)(lt,{onClick:function(){return l(!0)},width:"no-padding",children:m({id:', '#').'#';  // add escape delimiters
+    $pattern = '#(isReleased&&)(\(0,.*?\.jsx\).*?\{)(onClick.*?padding",)(children\:.*?\(\{id\:)("common_buttons_watchOptions")(.*?)("Watch options"\})#';
+    preg_match($pattern, $js_file_data, $matches_2);
+    $xxx = ".concat(t.id.replace(/\D/g, ''))";
+    $append = $matches_2[2].'href:"edit.php?save=1&lookup=2&imdbID=imdb:"'.$xxx.','.$matches_2[4].'"add_episode"'.$matches_2[6].'"Add Episode"})}),';   
+    $append.= 't.videodbid != 0 && (0, a.jsx)(ut,{href:"show.php?id=".concat(t.videodbid),children: m({id:"show_episode",defaultMessage:"Show Episode ".concat(t.videodbdiskid)})}),'; 
+/// reorder from here
+
+    // find the json data to add videodb id if in db
+    preg_match('#(\<script id\="__NEXT_DATA__".*?)("episodes"\:.*?)(,"currentSeason")#',$html,$matches_1);
+    // Decode the JSON file
+    $ep_data = json_decode("{".$matches_1[2]."}",true);
+//$file_path = './cache/nextdata_supplied.json';
+//file_put_contents($file_path, $matches_b[2]);
+    $x = 0;
+    foreach ($ep_data[episodes][items] as $object) {
+        $imdb_ids[$x] = filter_var($object[id], FILTER_SANITIZE_NUMBER_INT);
+//            if already on db  more work to get real id
+        $ep_data[episodes][items][$x][videodbid] = $x; //this latter in getting tedst if one missing
+        $ep_data[episodes][items][$x][videodbdiskid] = $x."diskid"; //this latter in getting tedst if one missing
+        $x  = $x + 1;
+    }
+    $ep_data_new = json_encode($ep_data, JSON_UNESCAPED_SLASHES );
+//$file_path = './cache/nextdata_new_encoded.json';
+//file_put_contents($file_path, $ep_data_new);
+    // strip out added delimiters
+    $ep_data_new = substr($ep_data_new, 1, -1);   
+//$file_path = './cache/nextdata_new_trimmed.json';
+//file_put_contents($file_path, $ep_data_new);
+   //update htlm with added ids          
+    $html = preg_replace('#\<script id\="__NEXT_DATA__".*?"episodes"\:.*?,"currentSeason"#',
+                         $matches_1[1].$ep_data_new.$matches_1[3],
+                         $html);
+//$file_path = './cache/html_new.text';
+//file_put_contents($file_path, $html);
+    if (is_known_item('imdb:'.$imdb_ids[2], $sp_id, $sp_diskid))
+    {
+        $diskid = "";
+        if ($sp_diskid <> "no_diskid") 
+        {
+            $diskid = " (Diskid:".$sp_diskid.")";  //   not needed built else where ???
+        }
+        // add js if statement !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+     //    $append.= $matches_2[2].'href:"show.php?id=".concat(t.videodbid),'.$matches_2[4].'"show_episode"'.$matches_2[6].'"Show Episode ".concat(t.videodbdiskid)'.'})}),';
+    //    $append.= 'if(t.videodbid = 0){'.$matches_2[2].'href:"show.php?id=".concat(t.videodbid),'.$matches_2[4].'"show_episode"'.$matches_2[6].'"Show Episode ".concat(t.videodbdiskid)'.'})}),}';
+        }
+
+
+ /// reorder to here       
+        
+        
+    // get position to insert cloned js
+    //className:"episode-item-wrapper",children:[(0,a.jsx)(qn,{href:"/title/".concat
+    //111111111111111111111111111111111111111111122222222222222222222222222222222222
+    $pattern_check = '#'.preg_quote('className:"episode-item-wrapper",children:[(0,a.jsx)(qn,{href:"/title/".concat', '#').'#';
+    $pattern = '#(className\:"episode\-item\\-wrapper",children\:\[)(\(0,.*?\.jsx\)\(.*?,\{href\:.*?\.concat)#';
+    preg_match($pattern, $js_file_data, $matches_3);
+    $replace_string = $matches_3[1].$append.$matches_3[2];
+    $js_file_data = preg_replace($pattern,
+                                 $matches_3[1].$append.$matches_3[2],
+                                 $js_file_data);
+
+    $file_path = './cache/new_eposidelist_js.js';
+    file_put_contents($file_path, $js_file_data);
+    
+    return array($js_file_data,$html);
 }
 
 // make sure this is a local access
