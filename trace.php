@@ -437,7 +437,15 @@ function fixup_javascript($html)
 //echo "<br>x is ".$x."  file name - ".$js_file;
         $js_file_data = file_get_contents($js_file_name);
         
-        // New version of episode list page
+        // add add/show to main title on episode list page @ aug 2023
+        $pattern = '#'.preg_quote('mainPageHref:', '#').'#';  // add escape delimiters
+       if (preg_match($pattern, $js_file_data, $matches) )
+       {
+           $js_file_data = replace_javascript_eposidelistmain ($js_file_data, $html);
+           $partfilename .= '-eposidelistmain';
+       }        
+
+        // add add/show to New version of episode list page @ aug 2023
         $pattern = '#'.preg_quote('SeasonsTab="tab-seasons"', '#').'#';  // add escape delimiters
         if (preg_match($pattern, $js_file_data, $matches) )
         {
@@ -707,6 +715,9 @@ function replace_javascript_episodelist ($js_file_data, $html)
     global $iframe;
 //echo "<br> in replace_javascript_episodelist";
 //echo "<br>".$js_file_name; echo "   ".$cachefolder;
+
+//file_put_contents('./cache/orig_eposidelist.js', $js_file_data);
+
     // allow for iframe templates
     $iframe_val = '';
     if ($iframe) $iframe_val = "&iframe=".$iframe;
@@ -714,23 +725,23 @@ function replace_javascript_episodelist ($js_file_data, $html)
    // fix navigation
    //string -    "/title/"
     $pattern = '#(")(/title/")#';
-//echo "<br>".$pattern;
     preg_match($pattern, $js_file_data, $matches);
-//echo "<br> js file - find for season"; var_dump($matches);
     $js_file_data = preg_replace($pattern,
                                  $matches[1].'http://".concat(window.location.host).concat(window.location.pathname).concat("?'.$iframe_val.'&videodburl=https://www.imdb.com'.$matches[2].')',
                                  $js_file_data);
 
-    // add - add and show episode
-    // find the json data to add videodb id if in db
+    // add - add and show to each episode
+    // find the json data in html containing title id each episode
     preg_match('#(\<script id\="__NEXT_DATA__".*?)("episodes"\:.*?)(,"currentSeason")#',$html,$matches_1);
+//file_put_contents('./cache/nextdata_episodedata.json', $matches_1[2]);  // for debugging
     // Decode the JSON file
     $ep_data = json_decode("{".$matches_1[2]."}",true);
-//$file_path = './cache/nextdata_supplied.json';
-//file_put_contents($file_path, $matches_b[2]);
+
     $x = 0;
     foreach ($ep_data['episodes']['items'] as $object) {
         $imdb_id = filter_var($object['id'], FILTER_SANITIZE_NUMBER_INT);
+        $ep_data['episodes']['items'][$x]['imdbid'] = $imdb_id;
+        
         $ep_data['episodes']['items'][$x]['videodbid'] = 0;
          if (is_known_item('imdb:'.$imdb_id, $sp_id, $sp_diskid))
         {
@@ -739,64 +750,101 @@ function replace_javascript_episodelist ($js_file_data, $html)
             {
                 $diskid = " (Diskid:".$sp_diskid.")";
             }
+            // add videodb id and diskid to html json
             $ep_data['episodes']['items'][$x]['videodbid'] = $sp_id;
             $ep_data['episodes']['items'][$x]['videodbdiskid'] = $diskid;
         }    
         $x  = $x + 1;
     }
     $ep_data_new = json_encode($ep_data, JSON_UNESCAPED_SLASHES );
-//$file_path = './cache/nextdata_new_encoded.json';
-//file_put_contents($file_path, $ep_data_new);
-    // strip out added delimiters
+//file_put_contents('./cache/nextdata_new_encoded.json', $ep_data_new);   // for debugging
+    // strip out added delimiters added in earlier
     $ep_data_new = substr($ep_data_new, 1, -1);   
-//$file_path = './cache/nextdata_new_trimmed.json';
-//file_put_contents($file_path, $ep_data_new);
-
-$file_path = './cache/html_old.text';
-file_put_contents($file_path, $html);
-    
-    //update htlm with added ids 
+//file_put_contents('./cache/nextdata_new_trimmed.json', $ep_data_new);  // for debugging
+    //update htlm with added ids in amended json
     $html = preg_replace('#\<script id\="__NEXT_DATA__".*?"episodes"\:.*?,"currentSeason"#',
                          $matches_1[1].$ep_data_new.$matches_1[3],
                          $html);
-//$file_path = './cache/html_new.text';
-//file_put_contents($file_path, $html);
+//file_put_contents('./cache/html_new.text', $html);  // for debugging
 
-//delete from herre
-///////////    //aggregateRating}}),t.isReleased&&(0,a.jsx)(lt,{onClick:function(){return l(!0)},width:"no-padding",children:m({id:"common_buttons_watchOptions",defaultMessage:"Watch options"}
-//////////    //111111111111111111111111111111111222222222222223333333333333333333333333333333333333333333333333333444444444444444555555555555555555555555555566666666666666667777777777777777
-$pattern_old   = '#(aggregateRating\}\}\),.*?\.isReleased&&)(\(0,.*?\.jsx\).*?\{)(onClick.*?padding",)(children\:.*?\(\{id\:)("common_buttons_watchOptions")(.*?)("Watch options"\})#';
-preg_match($pattern_old, $js_file_data, $matches_x);
-$append_old = $matches_x[2].'href:"edit.php?save=1&lookup=2&imdbID=imdb:".concat(t.id.replace(/\D/g, "")),'.$matches_x[4].'"add_episode"'.$matches_x[6].'"Add Episode"})}),';   
-$append_old.= 't.videodbid != 0 && (0, a.jsx)(ut,{href:"show.php?id=".concat(t.videodbid),children: m({id:"show_episode",defaultMessage:"Show Episode ".concat(t.videodbdiskid)})}),'; 
-//delete to here
-//
-//
     // get js code to clone
-    //aggregateRating}}),t.isReleased&&(0,a.jsx)(lt,{onClick:function(){return l(!0)},width:"no-padding",children:m({id:"common_buttons_watchOptions",defaultMessage:"Watch options"}
-    //1111111111111111111233333333333334444444444444455555555555555555555555555555555555555555555555555556666666666666667777777777777777777777777777788888888888888889999999999999999
-    $pattern = '#(aggregateRating\}\}\),)(.*?)(\.isReleased&&)(\(0,.*?\,\{)(onClick.*?padding",)(children\:.*?\(\{id\:)("common_buttons_watchOptions")(.*?)("Watch options"\})#';
-    //            1111111111111111111111  222  33333333333333  44444444444 55555555555555555555  666666666666666666666  777777777777777777777777777777 888  99999999999999999
+                //aggregateRating}}),I&&!E&&!_&&(0,a.jsx)(ut,{onClick:function(){return f(!0)},width:"no-padding",children:x({id:"common_buttons_watchOptions",defaultMessage:"Watch options"}
+                //1111111111111111111111111111112222222222222233333333333333333333333333333333333333333333333333334444444444444445555555555555555555555555555566666666666666667777777777777777
+    $pattern = '#(aggregateRating\}\}\),.*?_&&)(\(0,.*?\,\{)(onClick.*?padding",)(children\:.*?:)("common_buttons_watchOptions")(.*?)("Watch options"\})#';
+                //1111111111111111111111111111  22222222222  3333333333333333333  44444444444444  55555555555555555555555555555  666  77777777777777777
     preg_match($pattern, $js_file_data, $matches_2);
-    // build add episode js code
-    $append = $matches_2[4].'href:"edit.php?save=1&lookup=2&imdbID=imdb:".concat('.$matches_2[2].'.id.replace(/\D/g, "")),'.$matches_2[6].'"add_episode"'.$matches_2[8].'"Add Episode"})}),';   
-    // build show episode js code
-    $append.= $matches_2[2].'.videodbid != 0 &&'.$matches_2[4].'href:"show.php?id=".concat('.$matches_2[2].'.videodbid),'.$matches_2[6].'"show_episode",defaultMessage:"Show Episode ".concat('.$matches_2[2].'.videodbdiskid)})}),'; 
+    // bits needed 
+    $part1 = $matches_2[2];  // (0,a.jsx)(ut,{    a and ut variable
+    $part2 = $matches_2[4];    // children:x({id:   x variable and id maybe variable
+    $part3 = $matches_2[6];    // ,defaultMessage:  maybe variable
+    // get varaiable which holds episode data from json after processing in js 
+                 //({titleId:s.id})
+    $pattern = '#(\({titleId:)(.*?)(\.id}\))#';
+    preg_match($pattern, $js_file_data, $matches_4);
+    $part_4 = $matches_4[2];   // s is variable
     
+    // build add episode js code
+    $append = $part1.'href:"edit.php?save=1&lookup=2&imdbID=imdb:".concat('.$part_4.'.imdbid),'.$part2.'"add_episode"'.$part3.'"Add Episode"})}),';   
+    // build show episode js code
+    $append.= $part_4.'.videodbid != 0 &&'.$part1.'href:"show.php?id=".concat('.$part_4.'.videodbid),'.$part2.'"show_episode"'.$part3.'"Show Episode ".concat('.$part_4.'.videodbdiskid)})}),'; 
+  
     // get position to insert cloned js
-    //className:"episode-item-wrapper",children:[(0,a.jsx)(qn,{href:"/title/".concat
-    //111111111111111111111111111111111111111111122222222222222222222222222222222222
-    $pattern = '#(className\:"episode\-item\\-wrapper",children\:\[)(\(0,.*?\.jsx\)\(.*?,\{href\:.*?\.concat)#';
+              //className:"episode-item-wrapper",children:[(0,a.jsx)(qn,{href:"/title/".concat
+              //111111111111111111111111111111111111111111122222222222222222222222222222222222
+    $pattern = '#(className\:"episode\-item.*?children\:\[)(\(0,.*?\)\(.*?,\{href\:.*?\.concat)#';
     preg_match($pattern, $js_file_data, $matches_3);
-    $replace_string = $matches_3[1].$append.$matches_3[2];
     $js_file_data = preg_replace($pattern,
                                  $matches_3[1].$append.$matches_3[2],
                                  $js_file_data);
 
-//$file_path = './cache/new_eposidelist.js';
-//file_put_contents($file_path, $js_file_data);
+//file_put_contents('./cache/new_eposidelist.js', $js_file_data);
     
     return array($js_file_data,$html);
+}
+
+function replace_javascript_eposidelistmain ($js_file_data, $html)
+{
+    global $iframe;
+//echo "<br> in replace_javascript_episodelist";
+//echo "<br>".$js_file_name; echo "   ".$cachefolder;
+    // allow for iframe templates
+    $iframe_val = '';
+    if ($iframe) $iframe_val = "&iframe=".$iframe;    
+
+    preg_match('#(\<script id\="__NEXT_DATA__".*?\>)(.*?)(\</script\>)#',$html,$matches_1);
+//$file_path = './cache/nextdata_episodedata.json';
+//file_put_contents($file_path, $matches_1[2]);
+    // Decode the JSON file
+    $json_data = json_decode($matches_1[2],true);
+    $imdb_id = filter_var($json_data["props"]["pageProps"]["contentData"]["entityMetadata"]["id"], FILTER_SANITIZE_NUMBER_INT);
+     // get js codeto clone
+    // ,{children:[(0,r.jsx)(X,{preIcon
+    // 1111111111112222222222222333333333
+    $pattern = '#(,\{children\:\[)(.*?)(preIcon)#';
+    preg_match($pattern, $js_file_data, $matches_2);
+    // build add episode js code
+    $append = $matches_2[2].'text:"\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0"}),';   // add spaces before link
+    $append.= $matches_2[2].'href:"edit.php?save=1&lookup=2&imdbID=imdb:'.$imdb_id.'","data-testid": "add_title",text:"Add Title"}),';   
+    if (is_known_item('imdb:'.$imdb_id, $sp_id, $sp_diskid))
+    {
+        $diskid = "";
+        if ($sp_diskid <> "no_diskid") 
+        {
+            $diskid = " (Diskid:".$sp_diskid.")";
+        }
+        // build show movie js code
+        $append.= $matches_2[2].'text:"\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0"}),'; //add spaces before link
+        $append.= $matches_2[2].'href:"show.php?id='.$sp_id.'","data-testid": "show_title",text:"Show Title'.$diskid.'"}),';
+    }
+
+    //"data-testid":children:[e.subtitle,
+    $pattern = '#"data-testid"\:.*?Subtitle,children\:\[.*?subtitle,#';
+    preg_match($pattern, $js_file_data, $matches_3);
+    $js_file_data = preg_replace($pattern,
+                                 $matches_3[0].$append,
+                                 $js_file_data); 
+
+    return ($js_file_data);
 }
 
 // make sure this is a local access
