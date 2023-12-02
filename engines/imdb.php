@@ -251,103 +251,149 @@ function imdbData($imdbID)
     $data['encoding'] = $resp['encoding'];
 
     // Check if it is a TV series episode
-    if (preg_match('/<title>.+?\(TV (Episode|Series|Mini-Series).*?<\/title>/si', $resp['data'])) {
-        $data['istv'] = 1;
-
-        # find id of Series
-        preg_match('/<meta property="imdb:pageConst" content="tt(\d+)"\/>/si', $resp['data'], $ary);
-        $data['tvseries_id'] = trim($ary[1]);
+    $data['pagetype'] = $json_data["props"]["pageProps"]["aboveTheFoldData"]["titleType"]["text"];
+    if (array_key_exists('text', $json_data["props"]["pageProps"]["aboveTheFoldData"]["titleType"]) )
+    {
+    // may need only chech for tv episode 
+        if ($json_data["props"]["pageProps"]["aboveTheFoldData"]["titleType"]["text"] == "TV Episode" )
+        {
+            $data['seriestype'] = $json_data["props"]["pageProps"]["aboveTheFoldData"]["titleType"]["text"];
+            $data['istv'] = 1;
+            # find id of Series
+            preg_match('#\d+#', $json_data["props"]["pageProps"]["aboveTheFoldData"]["series"]["series"]["id"],$matches);
+            $data['tvseries_id'] = $matches[0];
+        }
     }
 
     // Titles and Year
     // See for different formats. https://contribute.imdb.com/updates/guide/title_formats
-    if ($data['istv']) {
-        if (preg_match('/<title>&quot;(.+?)&quot;(.+?)\(TV Episode (\d+)\) - IMDb<\/title>/si', $resp['data'], $ary)) {
-            # handles one episode of a TV serie
-            $data['title'] = trim($ary[1]);
-            $data['subtitle'] = trim($ary[2]);
-            $data['year'] = $ary[3];
-        } else if (preg_match('/<title>(.+?)\(TV (?:Series|Mini-Series) (\d+).+?\) - IMDb<\/title>/si', $resp['data'], $ary)) {
-            # handles a TV series.
-            # split title - subtitle
-            list($t, $s) = explode(' - ', $ary[1], 2);
-            # no dash, lets try colon
-            if ($s == false) {
-                list($t, $s) = explode(': ', $ary[1], 2);
-            }
-            $data['title'] = trim($t);
-            $data['subtitle'] = trim($s);
-            $data['year'] = trim($ary[2]);
-        }
-    } else {
-        preg_match('/<title>(.+?)\(.*?(\d+)\).+?<\/title>/si', $resp['data'], $ary);
-        $data['year'] = trim($ary[2]);
-        # split title - subtitle
-        list($t, $s) = explode(' - ', $ary[1], 2);
-        # no dash, lets try colon
-        if ($s == false) {
-            list($t, $s) = explode(': ', $ary[1], 2);
-        }
-        $data['title'] = trim($t);
-        $data['subtitle'] = trim($s);
+    $data['title'] = "";
+    $data['subtitle'] = "";
+    if ($data['istv']) 
+    {
+        $data['title'] = $json_data["props"]["pageProps"]["aboveTheFoldData"]["series"]["series"]["titleText"]["text"];        
+        $data['subtitle'] = $json_data["props"]["pageProps"]["aboveTheFoldData"]["titleText"]["text"];
+    
     }
+    else
+    {
+        $pieces = explode(": ", stripslashes($json_data["props"]["pageProps"]["aboveTheFoldData"]["titleText"]["text"]));
+        $data['title'] = $pieces[0];
+        $data['subtitle'] = $pieces[1];
+    }
+
+    $data['year'] = "";
+    if (array_key_exists('year', $json_data["props"]["pageProps"]["aboveTheFoldData"]["releaseYear"]) )
+    {
+        $data['year'] = stripslashes($json_data["props"]["pageProps"]["aboveTheFoldData"]["releaseYear"]["year"]);
+    }
+
     # orig. title
-    preg_match('/<div class="originalTitle">(.+?)<span class="description"> \(original title\)<\/span><\/div>/si', $resp['data'], $ary);
-    $data['origtitle'] = trim($ary[1]);
-
+     $data['origtitle'] = "";
+    if (array_key_exists('text', $json_data["props"]["pageProps"]["aboveTheFoldData"]["originalTitleText"]) )
+    {
+        $data['origtitle'] = stripslashes($json_data["props"]["pageProps"]["aboveTheFoldData"]["originalTitleText"]["text"]);
+    }    
+    
     // Cover URL
-    $data['coverurl'] = imdbGetCoverURL($resp['data']);
-
+    $data['coverurl'] = "";
+    if (array_key_exists('url', $json_data["props"]["pageProps"]["aboveTheFoldData"]["primaryImage"]) )
+    {
+        $data['coverurl'] = stripslashes($json_data["props"]["pageProps"]["aboveTheFoldData"]["primaryImage"]["url"]);
+    } 
+    
     // MPAA Rating
-    preg_match('/<div class="subtext">(.+?)</is', $resp['data'], $ary);
-    $data['mpaa'] = trim($ary[1]);
-
+    $data['mpaa'] = "";
+    if (array_key_exists('rating', $json_data["props"]["pageProps"]["aboveTheFoldData"]["certificate"]) )
+    {
+        $data['mpaa'] = $json_data["props"]["pageProps"]["aboveTheFoldData"]["certificate"]["rating"];
+    } 
+    
     // Runtime
-    if (filter_var($json_data["props"]["pageProps"]["aboveTheFoldData"]["runtime"]["seconds"], FILTER_SANITIZE_NUMBER_INT) > 0) {
+    $data['runtime'] = "";
+    if (filter_var($json_data["props"]["pageProps"]["aboveTheFoldData"]["runtime"]["seconds"], FILTER_SANITIZE_NUMBER_INT) > 0) 
+    {
         # use the runtime from the next_data json data
         $data['runtime'] = filter_var($json_data["props"]["pageProps"]["aboveTheFoldData"]["runtime"]["seconds"], FILTER_SANITIZE_NUMBER_INT) / 60;
-    } else if (preg_match('/<li role="presentation" class="ipc-inline-list__item">(\d+)(?:<!-- --> ?)+(?:h|s).*?(?:(?:<!-- --> ?)+(\d+)(?:<!-- --> ?)+.+?)?<\/li>/si', $resp['data'], $ary)) {
-        # handles Hours and maybe minutes. Some movies are exactly 1 hours.
-        $minutes = intval($ary[2]);
-    	if (is_numeric($ary[1])) {
-    		$minutes += intval($ary[1]) * 60;
-    	}
-
-    	$data['runtime'] = $minutes;
-    } else if (preg_match('/<li role="presentation" class="ipc-inline-list__item">(\d+)(?:<!-- --> ?)+m.*?<\/li>/si', $resp['data'], $ary)) {
-        # handle only minutes
-    	$data['runtime'] = $ary[1];
-    } else if (preg_match('/<div class="ipc-metadata-list-item__content-container">(\d+)(?:<!-- --> ?)+m.*?<\/div>/si', $resp['data'], $ary)) {
-        # handle only minutes
-        # Handles the case where runtime is only in the technical spec section.
-        $data['runtime'] = $ary[1];
     }
 
     // Director
-    preg_match('/<li.+?<button.+?Director.+?(<li.+?<a.+?href="\/name\/nm.+?\/?ref_=tt_ov_dr".+?<\/a>.+?<\/ul>)<\/div><\/li>/si', $resp['data'], $ary);
-    preg_match_all('/<a class=.+? href="\/name\/nm.+?">(.+?)<\/a>/si', $ary[1], $ary, PREG_PATTERN_ORDER);
-    // TODO: Update templates to use multiple directors
-    $data['director']  = trim(join(', ', $ary[1]));
+    $data['director'] = "";
+    if ($noofdirectors = $json_data["props"]["pageProps"]["mainColumnData"]["directors"]["0"]["totalCredits"] > 0)
+    {
+        foreach ($json_data["props"]["pageProps"]["mainColumnData"]["directors"]["0"]["credits"] as $directordata)
+        {
+            $directorarray[] = trim($directordata["name"]["nameText"]["text"]);
+        }
+        $data['director'] = trim(join(', ',$directorarray));
+    }    
 
     // Rating
-    preg_match('/<div data-testid="hero-rating-bar__aggregate-rating__score" class="sc-.+?"><span class="sc-.+?">(.+?)<\/span><span>\/<!-- -->10<\/span><\/div>/si', $resp['data'], $ary);
-    $data['rating'] = trim($ary[1]);
-
+    $data['rating'] = "";
+    $data['rating'] = $json_data["props"]["pageProps"]["aboveTheFoldData"]["ratingsSummary"]["aggregateRating"];
+   
     // Countries
-    preg_match_all('/href="\/search\/title\/\?country_of_origin.+?>(.+?)<\/a>/si', $resp['data'], $ary, PREG_PATTERN_ORDER);
-    $data['country'] = trim(join(', ', $ary[1]));
+    $data['country'] = "";
+    foreach ($json_data["props"]["pageProps"]["mainColumnData"]["countriesOfOrigin"]["countries"] as $countrydata)
+    {
+        $countryarray[] = trim($countrydata["text"]);
+    }
+    $data['country'] = trim(join(', ',$countryarray));
 
     // Languages
-	preg_match_all('/<a class=".+?" href="\/search\/title\?title_type=feature&amp;primary_language=.+?&amp;sort=moviemeter,asc&amp;ref_=tt_dt_ln">(.+?)<\/a>/', $resp['data'], $ary, PREG_PATTERN_ORDER);
-    $data['language'] = trim(strtolower(join(', ', $ary[1])));
+    $data['language'] = "";
+    foreach ($json_data["props"]["pageProps"]["mainColumnData"]["spokenLanguages"]["spokenLanguages"] as $languagedata)
+    {
+        $languagearray[] = trim($languagedata["text"]);
+    }
+    $data['language'] = trim(strtolower(join(', ',$languagearray)));
 
     // Genres (as Array)
-    preg_match_all('/class="ipc-chip__text">(.+?)<\/span><\/a>/si', $resp['data'], $ary, PREG_PATTERN_ORDER);
-    foreach($ary[1] as $genre) {
-        $data['genres'][] = trim($genre);
+    $data['genres'] = array();
+    foreach ($json_data["props"]["pageProps"]["aboveTheFoldData"]["genres"]["genres"] as $genresdata)
+    {
+        $data['genres'][] = trim($genresdata["text"]);
     }
 
-    // for Episodes - try to get some missing stuff from the main series page
+    // Plot
+    if (array_key_exists('plainText', $json_data["props"]["pageProps"]["aboveTheFoldData"]["plot"]["plotText"]) )
+    {
+        $data['plot'] = stripslashes($json_data["props"]["pageProps"]["aboveTheFoldData"]["plot"]["plotText"]["plainText"]);
+    }  
+
+    // Fetch credits
+    $resp1 = imdbFixEncoding($data, httpClient($imdbServer.'/title/tt'.$imdbID.'/fullcredits', $cache));
+    if (!$resp1['success']) $CLIENTERROR .= $resp1['error']."\n";
+    #file_put_contents('./cache/httpclient-php_imdbData_fullcredits.html', $resp1['data']);  // write page data to file
+    
+    // Cast
+    if (preg_match('#<table class="cast_list">(.*)#si', $resp1['data'], $match))
+    {
+        // no idea why it does not always work with (.*?)</table
+        // could be some maximum length of .*?
+        // anyways, I'm cutting it here
+        $casthtml = substr($match[1], 0, strpos($match[1], '</table'));
+        $cast = '';
+        if (preg_match_all('#<td class=\"primary_photo\">\s+<a href=\"\/name\/(nm\d+)\/?.*?".+?<a .+?>(.+?)<\/a>.+?<td class="character">(.*?)<\/td>#si', $casthtml, $ary, PREG_PATTERN_ORDER))
+        {
+            for ($i=0; $i < sizeof($ary[0]); $i++)
+            {
+                $actorid    = trim(strip_tags($ary[1][$i]));
+                $actor      = trim(strip_tags($ary[2][$i]));
+                $character  = trim( preg_replace('/\s+/', ' ', strip_tags( preg_replace('/&nbsp;/', ' ', $ary[3][$i]))));
+                $cast  .= "$actor::$character::$imdbIdPrefix$actorid\n";
+            }
+        }
+
+        // remove html entities and replace &nbsp; with simple space
+        $data['cast'] = html_clean_utf8($cast);
+
+        // sometimes appearing in series (e.g. Scrubs)
+        $data['cast'] = preg_replace('#/ ... #', '', $data['cast']);
+    }
+
+   
+/*    // for Episodes - try to get some missing stuff from the main series page
     if ( $data['istv'] and (!$data['runtime'] or !$data['country'] or !$data['language'] or !$data['coverurl'])) {
         $sresp = httpClient($imdbServer.'/title/tt'.$data['tvseries_id'].'/', $cache);
         if (!$sresp['success']) $CLIENTERROR .= $resp['error']."\n";
@@ -387,44 +433,8 @@ function imdbData($imdbID)
             $data['coverurl'] = imdbGetCoverURL($sresp['data']);
         }
     }
-
-    // Plot
-    if (array_key_exists('plainText', $json_data["props"]["pageProps"]["aboveTheFoldData"]["plot"]["plotText"]) )
-    {
-        $data['plot'] = stripslashes($json_data["props"]["pageProps"]["aboveTheFoldData"]["plot"]["plotText"]["plainText"]);
-    }
-    
-    // Fetch credits
-    $resp = imdbFixEncoding($data, httpClient($imdbServer.'/title/tt'.$imdbID.'/fullcredits', $cache));
-    if (!$resp['success']) $CLIENTERROR .= $resp['error']."\n";
-
-    // Cast
-    if (preg_match('#<table class="cast_list">(.*)#si', $resp['data'], $match))
-    {
-        // no idea why it does not always work with (.*?)</table
-        // could be some maximum length of .*?
-        // anyways, I'm cutting it here
-        $casthtml = substr($match[1], 0, strpos($match[1], '</table'));
-        $cast = '';
-        if (preg_match_all('#<td class=\"primary_photo\">\s+<a href=\"\/name\/(nm\d+)\/?.*?".+?<a .+?>(.+?)<\/a>.+?<td class="character">(.*?)<\/td>#si', $casthtml, $ary, PREG_PATTERN_ORDER))
-        {
-            for ($i=0; $i < sizeof($ary[0]); $i++)
-            {
-                $actorid    = trim(strip_tags($ary[1][$i]));
-                $actor      = trim(strip_tags($ary[2][$i]));
-                $character  = trim( preg_replace('/\s+/', ' ', strip_tags( preg_replace('/&nbsp;/', ' ', $ary[3][$i]))));
-                $cast  .= "$actor::$character::$imdbIdPrefix$actorid\n";
-            }
-        }
-
-        // remove html entities and replace &nbsp; with simple space
-        $data['cast'] = html_clean_utf8($cast);
-
-        // sometimes appearing in series (e.g. Scrubs)
-        $data['cast'] = preg_replace('#/ ... #', '', $data['cast']);
-    }
-
-    // Fetch plot
+*/
+/*    // Fetch plot
     $resp = $resp = imdbFixEncoding($data, httpClient($imdbServer.'/title/tt'.$imdbID.'/plotsummary', $cache));
     if (!$resp['success']) $CLIENTERROR .= $resp['error']."\n";
 
@@ -448,6 +458,8 @@ function imdbData($imdbID)
     }
 
     $data['plot'] = html_clean_utf8($data['plot']);
+*/   
+    file_put_contents('./cache/data.txt', print_r($data, true));  // write $data to file
 
     return $data;
 }
