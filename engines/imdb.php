@@ -235,34 +235,34 @@ function imdbData($imdbID)
     // fetch mainpage
     $resp = httpClient($imdbServer.'/title/tt'.$imdbID.'/', $cache);     // added trailing / to avoid redirect
     #testing code save resp data from imdb
-    #file_put_contents('./cache/httpclient-php_imdbData_title.html', $resp['data']);  // write page data to file
+    #file_put_contents('./cache/httpclient-php_imdbData_title.html', $resp['data']);  // write page data to file for debugging
     
     if (!$resp['success']) $CLIENTERROR .= $resp['error']."\n";
-
-    // extract json data from page
-    if (preg_match('#(\<script id\="__NEXT_DATA__".*?\>)(.*?)(\</script\>)#',$resp['data'],$matches))
-    {
-        #file_put_contents('./cache/nextdata.json', $matches[2]);  // write json data to file
-        $json_data = json_decode($matches[2],true);
-        #file_put_contents('./cache/nextdata-decoded.json', print_r($json_data, true));  // write formated json data to file
-    } 
 
     // add encoding
     $data['encoding'] = $resp['encoding'];
 
-    // Check if it is a TV series episode
-    $data['pagetype'] = $json_data["props"]["pageProps"]["aboveTheFoldData"]["titleType"]["text"];
-    if (array_key_exists('text', $json_data["props"]["pageProps"]["aboveTheFoldData"]["titleType"]) )
+    // extract json data from page
+    if (preg_match('#(\<script id\="__NEXT_DATA__".*?\>)(.*?)(\</script\>)#',$resp['data'],$matches))
     {
-    // may need only chech for tv episode 
-        if ($json_data["props"]["pageProps"]["aboveTheFoldData"]["titleType"]["text"] == "TV Episode" )
-        {
-            $data['seriestype'] = $json_data["props"]["pageProps"]["aboveTheFoldData"]["titleType"]["text"];
-            $data['istv'] = 1;
-            # find id of Series
-            preg_match('#\d+#', $json_data["props"]["pageProps"]["aboveTheFoldData"]["series"]["series"]["id"],$matches);
-            $data['tvseries_id'] = $matches[0];
-        }
+        #file_put_contents('./cache/nextdata.json', $matches[2]);  // write json data to file for debugging
+        $json_data = json_decode($matches[2],true);
+        #file_put_contents('./cache/nextdata-decoded.json', print_r($json_data, true));  // write formated json data to file for debugging
+    }
+    
+    $data['pagetype'] = $json_data["props"]["pageProps"]["aboveTheFoldData"]["titleType"]["text"];  //not used anywhere just for info
+    
+    // Check if it is a TV series episode
+    $data['seriestype'] = "";
+    $data['istv'] = 0;
+    $data['tvseries_id'] = "";
+     if ($json_data["props"]["pageProps"]["aboveTheFoldData"]["titleType"]["text"] == "TV Episode" )
+    {
+        $data['seriestype'] = $json_data["props"]["pageProps"]["aboveTheFoldData"]["titleType"]["text"];
+        $data['istv'] = 1;
+        # find id of Series
+        preg_match('#\d+#', $json_data["props"]["pageProps"]["aboveTheFoldData"]["series"]["series"]["id"],$matches);
+        $data['tvseries_id'] = $matches[0];
     }
 
     // Titles and Year
@@ -283,43 +283,33 @@ function imdbData($imdbID)
     }
 
     $data['year'] = "";
-    if (array_key_exists('year', $json_data["props"]["pageProps"]["aboveTheFoldData"]["releaseYear"]) )
-    {
-        $data['year'] = stripslashes($json_data["props"]["pageProps"]["aboveTheFoldData"]["releaseYear"]["year"]);
-    }
+    $data['year'] = stripslashes($json_data["props"]["pageProps"]["aboveTheFoldData"]["releaseYear"]["year"]);
 
     # orig. title
-     $data['origtitle'] = "";
-    if (array_key_exists('text', $json_data["props"]["pageProps"]["aboveTheFoldData"]["originalTitleText"]) )
+    $data['origtitle'] = "";
+    if (!$data['istv']) 
     {
         $data['origtitle'] = stripslashes($json_data["props"]["pageProps"]["aboveTheFoldData"]["originalTitleText"]["text"]);
-    }    
+    }
     
     // Cover URL
     $data['coverurl'] = "";
-    if (array_key_exists('url', $json_data["props"]["pageProps"]["aboveTheFoldData"]["primaryImage"]) )
-    {
-        $data['coverurl'] = stripslashes($json_data["props"]["pageProps"]["aboveTheFoldData"]["primaryImage"]["url"]);
-    } 
+    $data['coverurl'] = stripslashes($json_data["props"]["pageProps"]["aboveTheFoldData"]["primaryImage"]["url"]);
     
     // MPAA Rating
     $data['mpaa'] = "";
-    if (array_key_exists('rating', $json_data["props"]["pageProps"]["aboveTheFoldData"]["certificate"]) )
-    {
-        $data['mpaa'] = $json_data["props"]["pageProps"]["aboveTheFoldData"]["certificate"]["rating"];
-    } 
+    $data['mpaa'] = $json_data["props"]["pageProps"]["aboveTheFoldData"]["certificate"]["rating"];
     
     // Runtime
     $data['runtime'] = "";
     if (filter_var($json_data["props"]["pageProps"]["aboveTheFoldData"]["runtime"]["seconds"], FILTER_SANITIZE_NUMBER_INT) > 0) 
     {
-        # use the runtime from the next_data json data
         $data['runtime'] = filter_var($json_data["props"]["pageProps"]["aboveTheFoldData"]["runtime"]["seconds"], FILTER_SANITIZE_NUMBER_INT) / 60;
     }
 
     // Director
     $data['director'] = "";
-    if ($noofdirectors = $json_data["props"]["pageProps"]["mainColumnData"]["directors"]["0"]["totalCredits"] > 0)
+    if ($json_data["props"]["pageProps"]["mainColumnData"]["directors"]["0"]["totalCredits"] > 0)
     {
         foreach ($json_data["props"]["pageProps"]["mainColumnData"]["directors"]["0"]["credits"] as $directordata)
         {
@@ -356,15 +346,35 @@ function imdbData($imdbID)
     }
 
     // Plot
+    $data['plot'] = "";
     if (array_key_exists('plainText', $json_data["props"]["pageProps"]["aboveTheFoldData"]["plot"]["plotText"]) )
     {
         $data['plot'] = stripslashes($json_data["props"]["pageProps"]["aboveTheFoldData"]["plot"]["plotText"]["plainText"]);
-    }  
+    }
+    else
+    {
+        // if plot not found on page try plot summary page
+        $resp1 = $resp1 = imdbFixEncoding($data, httpClient($imdbServer.'/title/tt'.$imdbID.'/plotsummary', $cache));
+        if (!$resp1['success']) $CLIENTERROR .= $resp1['error']."\n";
+
+        preg_match('/<li class="ipl-zebra-list__item" id="summary-p.\d+">\s+<p>(.+?)<\/p>/is', $resp1['data'], $ary);
+        if ($ary[1])
+        {
+            $data['plot'] = trim($ary[1]);
+            $data['plot'] = preg_replace('/&#34;/', '"', $data['plot']); //Replace HTML " with "
+
+            // removed linked actors like: <a href="/name/nm0001570?ref_=tt_stry_pl">Edward Norton</a>
+            $data['plot'] = preg_replace('/<a href="\/name\/nm\d+.+?">/', '', $data['plot']);
+            $data['plot'] = preg_replace('/<\/a>/', '', $data['plot']);
+            $data['plot'] = preg_replace('/\s+/s', ' ', $data['plot']);
+        }
+    }
+    $data['plot'] = html_clean_utf8($data['plot']);
 
     // Fetch credits
     $resp1 = imdbFixEncoding($data, httpClient($imdbServer.'/title/tt'.$imdbID.'/fullcredits', $cache));
     if (!$resp1['success']) $CLIENTERROR .= $resp1['error']."\n";
-    #file_put_contents('./cache/httpclient-php_imdbData_fullcredits.html', $resp1['data']);  // write page data to file
+    #file_put_contents('./cache/httpclient-php_imdbData_fullcredits.html', $resp1['data']);  // write page data to file for debugging
     
     // Cast
     if (preg_match('#<table class="cast_list">(.*)#si', $resp1['data'], $match))
@@ -392,74 +402,55 @@ function imdbData($imdbID)
         $data['cast'] = preg_replace('#/ ... #', '', $data['cast']);
     }
 
-   
-/*    // for Episodes - try to get some missing stuff from the main series page
-    if ( $data['istv'] and (!$data['runtime'] or !$data['country'] or !$data['language'] or !$data['coverurl'])) {
-        $sresp = httpClient($imdbServer.'/title/tt'.$data['tvseries_id'].'/', $cache);
-        if (!$sresp['success']) $CLIENTERROR .= $resp['error']."\n";
+    // for Episodes - try to get some missing stuff from the main series page
+    if ( $data['istv'] and (!$data['runtime'] or !$data['country'] or !$data['language'] or !$data['coverurl'])) 
+    {
+        $resp1 = httpClient($imdbServer.'/title/tt'.$data['tvseries_id'].'/', $cache);
+        if (!$resp1['success']) $CLIENTERROR .= $resp1['error']."\n";
 
+        // extract json data from page
+        if (preg_match('#(\<script id\="__NEXT_DATA__".*?\>)(.*?)(\</script\>)#',$resp1['data'],$matches))
+        {
+            #file_put_contents('./cache/nextdata.json', $matches[2]);  // write json data to file
+            $json_data1 = json_decode($matches[2],true);
+            #file_put_contents('./cache/nextdata-decoded.json', print_r($json_data1, true));  // write formated json data to file for debugging
+        }        
+        
         # runtime
-        if (preg_match('/<li role="presentation" class="ipc-inline-list__item">(\d+)(?:<!-- --> ?)+(?:h|s).*?(?:(?:<!-- --> ?)+(\d+)(?:<!-- --> ?)+.+?)?<\/li>/si', $resp['data'], $ary)) {
-            # handles Hours and maybe minutes. Some movies are exactly 1 hours.
-            $minutes = intval($ary[2]);
-            if (is_numeric($ary[1])) {
-                $minutes += intval($ary[1]) * 60;
+        if (!$data['runtime']) {
+            $data['runtime'] = "";
+            if (filter_var($json_data1["props"]["pageProps"]["aboveTheFoldData"]["runtime"]["seconds"], FILTER_SANITIZE_NUMBER_INT) > 0) 
+            {
+                # use the runtime from the next_data json data
+                $data['runtime'] = filter_var($json_data1["props"]["pageProps"]["aboveTheFoldData"]["runtime"]["seconds"], FILTER_SANITIZE_NUMBER_INT) / 60;
             }
-
-            $data['runtime'] = $minutes;
-        } else if (preg_match('/<li role="presentation" class="ipc-inline-list__item">(\d+)(?:<!-- --> ?)+m.*?<\/li>/si', $resp['data'], $ary)) {
-            # handle only minutes
-            $data['runtime'] = $ary[1];
-        } else if (preg_match('/<div class="ipc-metadata-list-item__content-container">(\d+)(?:<!-- --> ?)+m.*?<\/div>/si', $resp['data'], $ary)) {
-            # handle only minutes
-            # Handles the case where runtime is only in the technical spec section.
-            $data['runtime'] = $ary[1];
         }
-
+        
         # country
         if (!$data['country']) {
-            preg_match_all('/href="\/search\/title\/\?country_of_origin.+?>(.+?)<\/a>/si', $sresp['data'], $ary, PREG_PATTERN_ORDER);
-            $data['country'] = trim(join(', ', $ary[1]));
+            foreach ($json_data1["props"]["pageProps"]["mainColumnData"]["countriesOfOrigin"]["countries"] as $countrydata)
+            {
+                $countryarray[] = trim($countrydata["text"]);
+            }
+            $data['country'] = trim(join(', ',$countryarray));
         }
 
         # language
         if (!$data['language']) {
-	        preg_match_all('/<a class=".+?" rel="" href="\/search\/title\?title_type=feature&amp;primary_language=.+?&amp;sort=moviemeter,asc&amp;ref_=tt_dt_ln">(.+?)<\/a>/', $sresp['data'], $ary, PREG_PATTERN_ORDER);
-            $data['language'] = trim(strtolower(join(', ', $ary[1])));
+            foreach ($json_data1["props"]["pageProps"]["mainColumnData"]["spokenLanguages"]["spokenLanguages"] as $languagedata)
+            {
+                $languagearray[] = trim($languagedata["text"]);
+            }
+            $data['language'] = trim(strtolower(join(', ',$languagearray)));
         }
 
         # cover
         if (!$data['coverurl']) {
-            $data['coverurl'] = imdbGetCoverURL($sresp['data']);
+            $data['coverurl'] = stripslashes($json_data1["props"]["pageProps"]["aboveTheFoldData"]["primaryImage"]["url"]);
         }
-    }
-*/
-/*    // Fetch plot
-    $resp = $resp = imdbFixEncoding($data, httpClient($imdbServer.'/title/tt'.$imdbID.'/plotsummary', $cache));
-    if (!$resp['success']) $CLIENTERROR .= $resp['error']."\n";
-
-    // Plot
-    //<li class="ipl-zebra-list__item" id="summary-ps0695557">
-    //  <p>A nameless first person narrator (<a href="/name/nm0001570/">Edward Norton</a>) attends support groups in attempt to subdue his emotional state and relieve his insomniac state. When he meets Marla (<a href="/name/nm0000307/">Helena Bonham Carter</a>), another fake attendee of support groups, his life seems to become a little more bearable. However when he associates himself with Tyler (<a href="/name/nm0000093/">Brad Pitt</a>) he is dragged into an underground fight club and soap making scheme. Together the two men spiral out of control and engage in competitive rivalry for love and power. When the narrator is exposed to the hidden agenda of Tyler&#39;s fight club, he must accept the awful truth that Tyler may not be who he says he is.</p>
-    //  <div class="author-container">
-    //      <em>&mdash;<a href="/search/title?plot_author=Rhiannon&view=simple&sort=alpha&ref_=ttpl_pl_0">Rhiannon</a></em>
-    //  </div>
-    //</li>
-    preg_match('/<li class="ipl-zebra-list__item" id="summary-p.\d+">\s+<p>(.+?)<\/p>/is', $resp['data'], $ary);
-    if ($ary[1])
-    {
-        $data['plot'] = trim($ary[1]);
-        $data['plot'] = preg_replace('/&#34;/', '"', $data['plot']); //Replace HTML " with "
-
-        // removed linked actors like: <a href="/name/nm0001570?ref_=tt_stry_pl">Edward Norton</a>
-        $data['plot'] = preg_replace('/<a href="\/name\/nm\d+.+?">/', '', $data['plot']);
-        $data['plot'] = preg_replace('/<\/a>/', '', $data['plot']);
-        $data['plot'] = preg_replace('/\s+/s', ' ', $data['plot']);
-    }
-
-    $data['plot'] = html_clean_utf8($data['plot']);
-*/   
-    file_put_contents('./cache/data.txt', print_r($data, true));  // write $data to file
+    }   
+    
+    #file_put_contents('./cache/data.txt', print_r($data, true));  // write $data to file
 
     return $data;
 }
