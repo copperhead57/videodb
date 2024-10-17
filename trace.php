@@ -411,12 +411,12 @@ function fixup_javascript($html)
     }
 
     // testing only
-    /*
+    ///*
     $cachefolder = cache_get_folder('javascript-preclone');
     $error = cache_create_folders($cachefolder, 0); // ensure folder exists
     // empty javascript cache as imdb keep changing things
     array_map('unlink', glob($cachefolder."/*.*"));    
-    */
+    //*/
     
     // get cache folder
     $cachefolder = cache_get_folder('javascript');  //get cache root folder
@@ -440,10 +440,10 @@ function fixup_javascript($html)
         $js_file_data = file_get_contents($js_file_name);
 
         // debugging only - use to get copy of all javascript before cloning
-        /*
+    //    /*
         $file_path = './cache/javascript-preclone/pre_'.$x.'.js';
         file_put_contents($file_path, $js_file_data); 
-        */
+    //    */
         $pattern = '#'.preg_quote('fragment BaseTitleCard on Title', '#').'#';  // add escape delimiters
         if ( preg_match($pattern, $js_file_data, $matches))
         {
@@ -552,8 +552,7 @@ function replace_javascript_title ($js_file_data)
     //    let r=""+"/title/{tconst}/taglines/"
     //    let r=""+"/title/{tconst}/trivia/"
     //    let r=""+"/title/{tconst}/reviews/"
-    $pattern = '#(let r\=""\+"|let r\=\(..localePrefix\?\?""\)\+")(/title/\{tconst\}.*?")#';
- //   preg_match_all($pattern, $js_file_data, $matches);
+    $pattern = '#(let .\=""\+"|let r\=\(..localePrefix\?\?""\)\+")(/title/\{tconst\}.*?")#';
     if (preg_match($pattern, $js_file_data, $matches))
     {
         $js_file_data = preg_replace_callback($pattern, function ($matches) use ($iframe_val) 
@@ -562,6 +561,41 @@ function replace_javascript_title ($js_file_data)
         }, $js_file_data);
     }    
 
+    //   let r = (e.localePrefix ?? "") + "/name/{nconst}/"
+    //   let r=""+"/name/{nconst}/awards/"
+    //   let r=""+"/name/{nconst}/quotes/"
+    //   let r=""+"/name/{nconst}/triva/"
+    //   let r=""+"/name/{nconst}/videogallery/"
+    //   let r=""+"/name/{nconst}/bio/"
+    //   let r=""+"/name/{nconst}/externalsites/"
+    //   let r=""+"/name/{nconst}/faq/"
+    //   let r=""+"/name/{nconst}/mediaindex/"
+    //   let r=""+"/name/{nconst}/mediaviewer/"
+    //   let r=""+"/name/{nconst}/news/"
+    //   let r=""+"/name/{nconst}/otherworksawards/"
+    //   let r=""+"/name/{nconst}/publicity/"
+    $pattern = '#(let .\=""\+"|let .\=\(..localePrefix\?\?""\)\+")(/name/\{nconst\}.*?")#';
+    unset($mataches);
+    if (preg_match($pattern, $js_file_data, $matches))
+    {
+        $js_file_data = preg_replace_callback($pattern, function ($matches) use ($iframe_val) 
+        {
+           return $matches[1].'?'.$iframe_val.'&videodburl=https://www.imdb.com'.$matches[2];
+        }, $js_file_data);
+    }
+    
+    //   let r=""+"/interest/{inconst}/"
+    $pattern = '#(let .\=""\+")(/interest/\{inconst\}/")#';
+    unset($mataches);
+    if (preg_match($pattern, $js_file_data, $matches))
+    {
+        $js_file_data = preg_replace_callback($pattern, function ($matches) use ($iframe_val) 
+        {
+           return $matches[1].'?'.$iframe_val.'&videodburl=https://www.imdb.com'.$matches[2];
+        }, $js_file_data);
+    }
+    
+    
     return $js_file_data;  
 }
 
@@ -615,7 +649,7 @@ function replace_javascript_addmovie ($js_file_data)
     } 
     
    // find_string  `/title/ or  `/name/
-    $pattern = '#(`)(/title/|/name/|/interest/|/search/)#';
+    $pattern = '#(`)(/title/|/name/)#';
     unset($matches);
     if (preg_match($pattern, $js_file_data, $matches))
     {
@@ -623,7 +657,31 @@ function replace_javascript_addmovie ($js_file_data)
             return $matches[1].'?'.$iframe_val.'&videodburl=https://www.imdb.com'.$matches[2];
         }, $js_file_data);
     }
-    
+
+    // links for actor real name
+    //"data-testid":"title-cast-item__actor",href:
+    $pattern = '#"data-testid":"title-cast-item__actor",href:#';
+    unset($matches);
+    preg_match($pattern, $js_file_data, $matches);
+    if (preg_match($pattern, $js_file_data, $matches))
+    {
+        $js_file_data = preg_replace($pattern,
+                                     $matches[0].'"?'.$iframe_val.'&videodburl=https://www.imdb.com"+',
+                                     $js_file_data);
+    }
+ 
+//    // links for principals names
+//    //"data-testid":"title-pc-principal-credit",labelTitle:t.category.text,labelLinkAriaLabel:a,labelLink:t.totalCredits>t.credits.length?s:void 0,listContent:t.credits.filter(e=>!!e.name.nameText).map((e,t)=>{let{name:a}=e;return{href:
+    $pattern = '#"data-testid":"title-pc-principal-credit".*?href:#';
+    unset($matches);
+    preg_match($pattern, $js_file_data, $matches);
+    if (preg_match($pattern, $js_file_data, $matches))
+    {
+        $js_file_data = preg_replace($pattern,
+                                     $matches[0].'"?'.$iframe_val.'&videodburl=https://www.imdb.com"+',
+                                     $js_file_data);
+    }
+
     return $js_file_data; 
 }
 
@@ -773,7 +831,7 @@ function replace_javascript_episodemain ($js_file_data, $html)
     if ($iframe) $iframe_val = "&iframe=".$iframe;    
 
     // find_string  `/title/ or  `/name/
-    $pattern = '#(`)(/title/|/name/|/interest/|/search/)#';
+    $pattern = '#(`)(/title/|/name/)#';
     unset($matches);
     if (preg_match($pattern, $js_file_data, $matches))
     {
