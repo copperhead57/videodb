@@ -127,7 +127,7 @@ if ($ajax_prefetch_id || $ajax_autocomplete_title || $ajax_autocomplete_subtitle
 		echo(json_encode($data));
 		exit;
     }
-    
+    $ret = null;    
     foreach ($data as $item)
     {
         $text = preg_replace('/('.$ajax_autocomplete_title.')/i', '<em>\1</em>', $item['title']);

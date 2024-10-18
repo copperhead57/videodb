@@ -106,10 +106,13 @@ function httpClient($url, $cache = false, $para = null, $reload = false)
     $requestConfig = [];
     $headers = '';  // additional HTTP headers, used for post data
 
-    if ($para['cookies'])
+    if (is_array($para))
     {
-        $jar = new GuzzleHttp\Cookie\CookieJar();
-        $requestConfig += ['cookies' => $jar];
+        if ($para['cookies'])
+        {
+            $jar = new GuzzleHttp\Cookie\CookieJar();
+            $requestConfig += ['cookies' => $jar];
+        }
     }
 
     $method  = 'GET';
@@ -145,9 +148,12 @@ function httpClient($url, $cache = false, $para = null, $reload = false)
     }
 
     // additional request headers
-    if ($para['header'])
+    if (is_array($para))
     {
-        $requestConfig += ['headers' => $para['header']];
+        if ($para['header'])
+        {
+            $requestConfig += ['headers' => $para['header']];
+        }
     }
 
     if (empty($requestConfig['headers']['Accept'])) $requestConfig['headers']['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8';
