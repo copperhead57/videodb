@@ -411,10 +411,10 @@ function fixup_javascript($html)
     }
 
     // testing only
-//    $cachefolder = cache_get_folder('javascript-preclone');
-//    $error = cache_create_folders($cachefolder, 0); // ensure folder exists
+    $cachefolder = cache_get_folder('javascript-preclone');
+    $error = cache_create_folders($cachefolder, 0); // ensure folder exists
 //    // empty javascript cache as imdb keep changing things
-//    array_map('unlink', glob($cachefolder."/*.*"));    
+    array_map('unlink', glob($cachefolder."/*.*"));    
     
     // get cache folder
     $cachefolder = cache_get_folder('javascript');  //get cache root folder
@@ -438,8 +438,8 @@ function fixup_javascript($html)
         $js_file_data = file_get_contents($js_file_name);
 
         // testing/debugging only - use to get copy of all javascript before cloning
-//        $file_path = './cache/javascript-preclone/pre_'.$x.'.js';
-//        file_put_contents($file_path, $js_file_data); 
+        $file_path = './cache/javascript-preclone/pre_'.$x.'.js';
+        file_put_contents($file_path, $js_file_data); 
         
         $pattern = '#'.preg_quote('fragment BaseTitleCard on Title', '#').'#';  // add escape delimiters
         if ( preg_match($pattern, $js_file_data, $matches))
@@ -483,6 +483,15 @@ function fixup_javascript($html)
             $partfilename .= '-addmovie';
         }
         
+        // for qlnk  links
+        $find_string = 'defaultMessage:"Cast & crew"';
+        $pattern = '#'.$find_string.'#';
+        if (preg_match($pattern, $js_file_data, $matches) )
+        {
+            $js_file_data = replace_javascript_qlnk  ($js_file_data);
+            $partfilename .= '-qlnk ';
+        }        
+      
         if ($partfilename <> '')
         {
             $file_path = './'.$cachefolder.'imdb-clone-'.$x.$partfilename.'.js';
@@ -671,14 +680,62 @@ function replace_javascript_addmovie ($js_file_data)
 //    //"data-testid":"title-pc-principal-credit",labelTitle:t.category.text,labelLinkAriaLabel:a,labelLink:t.totalCredits>t.credits.length?s:void 0,listContent:t.credits.filter(e=>!!e.name.nameText).map((e,t)=>{let{name:a}=e;return{href:
     $pattern = '#"data-testid":"title-pc-principal-credit".*?href:#';
     unset($matches);
-    preg_match($pattern, $js_file_data, $matches);
     if (preg_match($pattern, $js_file_data, $matches))
     {
         $js_file_data = preg_replace($pattern,
                                      $matches[0].'"?'.$iframe_val.'&videodburl=https://www.imdb.com"+',
                                      $js_file_data);
     }
+    
+    // link to character  profile  
+    // find string href:c,className:"title-cast-item__char" 
+    //             1111122222222222222222222222222222222222
+    $pattern = '#(href\:)(.,className\:"title\-cast\-item__char")#';
+    unset($matches);
+    if (preg_match($pattern, $js_file_data, $matches))
+    {
+        $js_file_data = preg_replace($pattern,
+                                     $matches[1]."'"."?$iframe_val&videodburl=https://www.imdb.com"."'"."+".$matches[2],
+                                     $js_file_data);
+    }    
+   
+    //"data-testid":"title-cast-allcast-link",labelTitle:s,labelLink:C,
+    //11111111111111111111111111111111111111111111111111111111111111122
+     $pattern = '#("data-testid":"title-cast-allcast-link",labelTitle:.,labelLink:)(.,)#';
+    unset($matches);
+    if (preg_match($pattern, $js_file_data, $matches))
+    {
+        $js_file_data = preg_replace($pattern,
+                                     $matches[1]."'"."?$iframe_val&videodburl=https://www.imdb.com"."'"."+".$matches[2],
+                                     $js_file_data);
+    }        
 
+    // top cast
+    //"data-testid":"title-cast",children:[(0,l.jsx)(aX.O,{title:r,editHref:h,subtitleProps:{href:C,subText:
+    //111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111112222222222
+    $pattern = '#("data\-testid":"title\-cast",children:\[\(.,..jsx\)\(....,{title:.,editHref:.,subtitleProps:{href:)(.,subText:)#';
+    unset($matches);
+    if (preg_match($pattern, $js_file_data, $matches))
+    {
+        $js_file_data = preg_replace($pattern,
+                                     $matches[1]."'"."?$iframe_val&videodburl=https://www.imdb.com"."'"."+".$matches[2],
+                                     $js_file_data);
+    } 
+    
+    // plot summary
+    //w.InlineListItem,{children:(0,l.jsx)(w.TextLink,{text:s.formatMessage(t),href:i,inline:
+    //111111111111111111111111111111111111111111111111111111111111111111111111111111222222222
+$pattern1 = '#'.preg_quote('w.InlineListItem,{children:(0,l.jsx)(w.TextLink,{text:s.formatMessage(t),href:i,inline:', '#').'#';
+preg_match_all($pattern1, $js_file_data, $matchesx);
+    $pattern = '#(..InlineListItem,{children:\(.,..jsx\)\(..TextLink,{text:..formatMessage\(.\),href:)(.,inline:)#';
+    unset($matches);
+    if (preg_match($pattern, $js_file_data, $matches))
+    {
+        $js_file_data = preg_replace($pattern,
+                                     $matches[1]."'"."?$iframe_val&videodburl=https://www.imdb.com"."'"."+".$matches[2],
+                                     $js_file_data);
+    } 
+    
     return $js_file_data; 
 }
 
@@ -690,26 +747,35 @@ function replace_javascript_search ($js_file_data)
 {
     global $iframe;
     $url = getScheme().'://'.$_SERVER['HTTP_HOST'].$_SERVER['PHP_SELF'];
-    
-    // look for   search:{searchEndpoint:"https://v2.sg.media-imdb.com/suggestion",queryTemplate:"%s%s/%s.json",formAction:"/find",formMethod:"get",inputName:"q",hiddenFields:[{name:"ref_",val:"nv_sr_sm"}]},
-    $pattern = '#(search:\{searchEndpoint:")(.*?)(",queryTemplate:")(.*?)((".*?formAction:")(.*?)(".*?hiddenFields:\[))(.*?\]\},)#';
-    preg_match($pattern, $js_file_data, $matches);
-
-    if ($iframe) $iframe_val = '{name:"iframe",val:"'.$iframe.'"},';
-    $replace_val = $matches[1].$url.$matches[3].'?videodburl='.$matches[2]."/".$matches[4].$matches[5].'{name:"videodburl",val:"http://www.imdb.com'.$matches[7].'"},'.$iframe_val.$matches[9];
-
-    $js_file_data = preg_replace($pattern,$replace_val, $js_file_data);
-
-    //"search-result--const",href:e.url} and "search-result--video",href:e.url} and "search-result--link",href:e.url}
-    $pattern = '#(",href:)(.\.url\})#';
-    preg_match($pattern, $js_file_data, $matches);
-
     $iframe_val = '';
-    if ($iframe) $iframe_val = "&iframe=".$iframe;    
-    $replace_val = $matches[1].'"'.$url.'?'.$iframe_val.'&videodburl=https://www.imdb.com"'.'+'.$matches[2];
-
-    $js_file_data = preg_replace($pattern,$replace_val, $js_file_data); 
+    if ($iframe) 
+    {
+        $iframe_val = '{name:"iframe",val:"'.$iframe.'"},';
+        $iframe_val_1 = "&iframe=".$iframe;
+    }
     
+    // fix link for looking glass in search bar
+    // look for   search:{searchEndpoint:"https://v2.sg.media-imdb.com/suggestion",queryTemplate:"%s%s/%s.json",formAction:"/find",formMethod:"get",inputName:"q",hiddenFields:[{name:"ref_",val:"nv_sr_sm"}],
+    //            11111111111111111111111 222222222222222222222222222222222222222 33333333333333334444444444445555555555555566666777777777777777777777777777777777777777777777778888888888888888888888888888888
+    $pattern = '#(search:\{searchEndpoint:")(.*?)(",queryTemplate:")(.*?formAction:")(.*?)(".*?hiddenFields:\[)(.*?\],)#';
+               // 1111111111111111111111111  222  33333333333333333  4444444444444444444  555  6666666666666666666  777777
+    unset($matches);
+    if (preg_match($pattern, $js_file_data, $matches))
+    {
+        $replace_val = $matches[1].$url.$matches[3].'?videodburl='.$matches[2]."/".$matches[4].'?videodburl='.$matches[5].$matches[6].'{name:"videodburl",val:"http://www.imdb.com'.$matches[5].'"},'.$iframe_val.$matches[7];
+        $js_file_data = preg_replace($pattern,$replace_val, $js_file_data);
+    }
+    
+    // fix link for drop down list in search bar
+    //"search-result--const",href:e.url} and "search-result--video",href:e.url} and "search-result--link",href:e.url}
+    //                     1111111222222                          1111111222222                         1111111222222  
+    $pattern = '#(",href:)(.\.url\})#';
+    unset($matches);
+    if (preg_match($pattern, $js_file_data, $matches))
+    {
+        $replace_val = $matches[1].'"'.$url.'?'.$iframe_val_1.'&videodburl=https://www.imdb.com/find"'.'+'.$matches[2];
+        $js_file_data = preg_replace($pattern,$replace_val, $js_file_data); 
+    }
     return $js_file_data;
 }
 
@@ -836,7 +902,54 @@ function replace_javascript_episodemain ($js_file_data, $html)
             return $matches[1].'?'.$iframe_val.'&videodburl=https://www.imdb.com'.$matches[2];
         }, $js_file_data);
     }
-   
+    
+    // do link to episode listing from episode main page
+    // find string TMD_Hero_EpisodeCount?.total||0),f=i({tconst:o??"",refSuffix
+    //             111111111111111111111111111111111112222222222222222222222222
+    $pattern = '#(TMD_Hero_EpisodeCount\?\.total\|\|0\),.\=)(.\(\{tconst\:.\?\?"",refSuffix)#';
+    unset($matches);
+    if (preg_match($pattern, $js_file_data, $matches))
+    {
+        $js_file_data = preg_replace($pattern,
+                                     $matches[1]."'"."?$iframe_val&videodburl=https://www.imdb.com"."'"."+".$matches[2],
+                                     $js_file_data);
+    }
+    return ($js_file_data);
+}
+
+/**
+ * @param   string  $js_file_data   imdb supplied javascript
+ * @return  string  $js_file_data   amended javascript
+ */
+function replace_javascript_qlnk ($js_file_data)
+{
+    global $iframe;
+    // allow for iframe templates
+    $iframe_val = '';
+    if ($iframe) $iframe_val = "&iframe=".$iframe;    
+
+    // do links upper right of episode main page  
+    // Cast & crew
+    // uder reviews
+    // Truvia
+    $pattern = '#('
+                    . 'defaultMessage:"Cast & crew"}\),href:'
+                .'|'
+                    . 'defaultMessage:"User reviews"}\),href:'
+                .'|'
+                    . 'defaultMessage:"Trivia"}\),href:'
+                . ')'
+               .'#';
+    preg_match($pattern, $js_file_data, $matches);
+    unset($matches);
+    if (preg_match($pattern, $js_file_data, $matches))
+    {
+        $js_file_data = preg_replace_callback($pattern, function ($matches) use ($iframe_val) 
+                        {
+                           return $matches[0]."'"."?$iframe_val&videodburl=https://www.imdb.com"."'"."+";
+                        }, $js_file_data);
+    }    
+    
     return ($js_file_data);
 }
 
