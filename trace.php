@@ -725,8 +725,6 @@ function replace_javascript_addmovie ($js_file_data)
     // plot summary
     //w.InlineListItem,{children:(0,l.jsx)(w.TextLink,{text:s.formatMessage(t),href:i,inline:
     //111111111111111111111111111111111111111111111111111111111111111111111111111111222222222
-$pattern1 = '#'.preg_quote('w.InlineListItem,{children:(0,l.jsx)(w.TextLink,{text:s.formatMessage(t),href:i,inline:', '#').'#';
-preg_match_all($pattern1, $js_file_data, $matchesx);
     $pattern = '#(..InlineListItem,{children:\(.,..jsx\)\(..TextLink,{text:..formatMessage\(.\),href:)(.,inline:)#';
     unset($matches);
     if (preg_match($pattern, $js_file_data, $matches))
@@ -773,7 +771,7 @@ function replace_javascript_search ($js_file_data)
     unset($matches);
     if (preg_match($pattern, $js_file_data, $matches))
     {
-        $replace_val = $matches[1].'"'.$url.'?'.$iframe_val_1.'&videodburl=https://www.imdb.com/find"'.'+'.$matches[2];
+        $replace_val = $matches[1].'"'.$url.'?'.$iframe_val_1.'&videodburl=https://www.imdb.com"'.'+'.$matches[2];
         $js_file_data = preg_replace($pattern,$replace_val, $js_file_data); 
     }
     return $js_file_data;
@@ -940,7 +938,6 @@ function replace_javascript_qlnk ($js_file_data)
                     . 'defaultMessage:"Trivia"}\),href:'
                 . ')'
                .'#';
-    preg_match($pattern, $js_file_data, $matches);
     unset($matches);
     if (preg_match($pattern, $js_file_data, $matches))
     {
@@ -949,7 +946,38 @@ function replace_javascript_qlnk ($js_file_data)
                            return $matches[0]."'"."?$iframe_val&videodburl=https://www.imdb.com"."'"."+";
                         }, $js_file_data);
     }    
+ 
+    // back button of episode list page
+    //    href:Q,"data-testid": n.BackButton
+    $pattern = '#(href:)(.,"data\-testid":..BackButton)#';
+    unset($matches);
+    if (preg_match($pattern, $js_file_data, $matches))
+    {
+        $js_file_data = preg_replace($pattern,
+                                     $matches[1]."'"."?$iframe_val&videodburl=https://www.imdb.com"."'"."+".$matches[2],
+                                     $js_file_data);
+    }  
     
+    // various links of eposide list page
+    // defaultMessage:"Videos"},href:(e,t)=>
+    // defaultMessage:"Cast & crew"},href:(e,t)=>
+    // defaultMessage:"Trivia"},href:(e, t)=>
+    // defaultMessage:"Photos"},href:(e, t)=>
+    $pattern = '#defaultMessage:"Trivia"\},href:\(.,.\)\=\>'
+             . '|defaultMessage:"Videos"\},href:\(.,.\)\=\>'
+             . '|defaultMessage:"Photos"\},href:\(.,.\)\=\>'
+             . '|defaultMessage:"Cast & crew"\},href:\(.,.\)\=\>'
+             . '|defaultMessage:"Taglines"\},href:\(.,.\)\=\>#';
+
+    unset($matches);
+    if (preg_match($pattern, $js_file_data, $matches))
+        {
+            $js_file_data = preg_replace_callback($pattern, function ($matches) use ($iframe_val) 
+                            {
+                               return $matches[0]."'"."?$iframe_val&videodburl=https://www.imdb.com"."'"."+";
+                            }, $js_file_data);
+        } 
+
     return ($js_file_data);
 }
 
