@@ -413,7 +413,7 @@ function fixup_javascript($html)
     // testing only
     $cachefolder = cache_get_folder('javascript-preclone');
     $error = cache_create_folders($cachefolder, 0); // ensure folder exists
-//    // empty javascript cache as imdb keep changing things
+    // empty javascript cache as imdb keep changing things
     array_map('unlink', glob($cachefolder."/*.*"));    
     
     // get cache folder
@@ -489,8 +489,17 @@ function fixup_javascript($html)
         if (preg_match($pattern, $js_file_data, $matches) )
         {
             $js_file_data = replace_javascript_qlnk  ($js_file_data);
-            $partfilename .= '-qlnk ';
-        }        
+            $partfilename .= '-qlnk';
+        }    
+        
+        // for search result page
+        $find_string = 'className:y,href:`/title';
+        $pattern = '#'.$find_string.'#';
+        if (preg_match($pattern, $js_file_data, $matches) )
+        {
+            $js_file_data = replace_javascript_srchlist  ($js_file_data);
+            $partfilename .= '-srchlist';
+        }  
       
         if ($partfilename <> '')
         {
@@ -616,8 +625,6 @@ function replace_javascript_addmovie ($js_file_data)
     $iframe_val = '';
     if ($iframe) $iframe_val = "&iframe=".$iframe;
 
-    //test code to debug if statement match
-    //preg_match("#/title/tt(\d+)#", $uri['path'], $m);
     if (preg_match("#/title/tt(\d+)#", $uri['path'], $m)) // $m[1] is imdb tltle no
     {
         // look for &&S.push({text:p.displayableProperty.value.plainText}),(0,r.jsx)   S p and r can change
@@ -646,7 +653,6 @@ function replace_javascript_addmovie ($js_file_data)
     // href=`https://${window.location.host}  "#href\=`https\://\$\{window\.location\.host\}#"
     $pattern = '#(href\=`)(https\://)(\$\{window\.location\.host\})#';
     unset($matches);
-    preg_match($pattern, $js_file_data, $matches);
     if (preg_match($pattern, $js_file_data, $matches))
     {
         $js_file_data = preg_replace($pattern,
@@ -785,6 +791,44 @@ function replace_javascript_search ($js_file_data)
         $replace_val = $matches[1].'"'.$url.'?'.$iframe_val_1.'&videodburl=https://www.imdb.com"'.'+'.$matches[2];
         $js_file_data = preg_replace($pattern,$replace_val, $js_file_data); 
     }
+    return $js_file_data;
+}
+
+/**
+ * @param   string  $js_file_data  imdb supplied javascript      
+ * @return  string  $js_file_data   amended javascript
+ */
+function replace_javascript_srchlist ($js_file_data)
+{
+    global $iframe;
+    $url = getScheme().'://'.$_SERVER['HTTP_HOST'].$_SERVER['PHP_SELF'];
+    $iframe_val = '';
+    if ($iframe) 
+    {
+        $iframe_val = '{name:"iframe",val:"'.$iframe.'"},';
+        $iframe_val_1 = "&iframe=".$iframe;
+    }   
+    
+   // find_string  `/title/ or  `/name/ or `/interest/
+    $pattern = '#(`)(/title/|/name/|/interest/)#';
+    unset($matches);
+    if (preg_match($pattern, $js_file_data, $matches))
+    {
+        $js_file_data = preg_replace_callback($pattern, function ($matches) use ($iframe_val) {
+            return $matches[1].'?'.$iframe_val.'&videodburl=https://www.imdb.com'.$matches[2];
+        }, $js_file_data);
+    }
+    
+    // find_string  TextButton,{href:
+    $pattern = '#TextButton,{href:#';
+    unset($matches);
+    if (preg_match($pattern, $js_file_data, $matches))
+    {
+        $js_file_data = preg_replace($pattern,
+                                     $matches[0]."'"."?$iframe_val&videodburl=https://www.imdb.com"."'"."+",
+                                     $js_file_data);
+    }
+    
     return $js_file_data;
 }
 
