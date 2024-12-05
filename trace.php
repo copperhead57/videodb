@@ -733,7 +733,18 @@ function replace_javascript_addmovie ($js_file_data)
                                      $matches[1]."'"."?$iframe_val&videodburl=https://www.imdb.com"."'"."+".$matches[2],
                                      $js_file_data);
     } 
-    
+
+    //  back cervon on eposide page to return to main series page
+    //refSuffix:B.Cd.SERIES});return(0,l.jsx)(tL,{children:(0,l.jsx)(tR,{href:
+    $pattern = '#refSuffix:.....SERIES}\);return\(.,..jsx\)\(..,{children:\(.,..jsx\)\(..,{href:#';
+    unset($matches);
+    if (preg_match($pattern, $js_file_data, $matches))
+    {
+        $js_file_data = preg_replace($pattern,
+                                     $matches[0]."'"."?$iframe_val&videodburl=https://www.imdb.com"."'"."+",
+                                     $js_file_data);
+    }
+             
     return $js_file_data; 
 }
 
@@ -912,6 +923,31 @@ function replace_javascript_episodemain ($js_file_data, $html)
                                      $matches[1]."'"."?$iframe_val&videodburl=https://www.imdb.com"."'"."+".$matches[2],
                                      $js_file_data);
     }
+    
+    // lnk for all episodes
+    //defaultMessage:"View all episodes"}),u=t?i({tconst:
+   $pattern = '#defaultMessage:"View all episodes"}\),.\=.\?#';
+   unset($matches);
+    if (preg_match($pattern, $js_file_data, $matches))
+    {
+        $js_file_data = preg_replace($pattern,
+                                     $matches[0]."'"."?$iframe_val&videodburl=https://www.imdb.com"."'"."+",
+                                     $js_file_data);
+    } 
+   
+    // prevoius and next cevrons around all episodes
+    //previousEpisode?.id,p=u?
+    //nextEpisode?.id,c=f?
+    $pattern = '#(previousEpisode\?.id,p\=u\?|nextEpisode\?.id,c\=f\?)#';
+    unset($matches);
+    if (preg_match($pattern, $js_file_data, $matches))
+    {
+        $js_file_data = preg_replace_callback($pattern, function ($matches) use ($iframe_val) {
+             return $matches[0]."'"."?$iframe_val&videodburl=https://www.imdb.com"."'"."+";
+        }, $js_file_data);
+    }
+    
+    
     return ($js_file_data);
 }
 
@@ -930,14 +966,7 @@ function replace_javascript_qlnk ($js_file_data)
     // Cast & crew
     // uder reviews
     // Truvia
-    $pattern = '#('
-                    . 'defaultMessage:"Cast & crew"}\),href:'
-                .'|'
-                    . 'defaultMessage:"User reviews"}\),href:'
-                .'|'
-                    . 'defaultMessage:"Trivia"}\),href:'
-                . ')'
-               .'#';
+    $pattern = '#(defaultMessage:"Cast & crew"}\),href:|defaultMessage:"User reviews"}\),href:|defaultMessage:"Trivia"}\),href:)#';
     unset($matches);
     if (preg_match($pattern, $js_file_data, $matches))
     {
@@ -963,10 +992,8 @@ function replace_javascript_qlnk ($js_file_data)
     // defaultMessage:"Cast & crew"},href:(e,t)=>
     // defaultMessage:"Trivia"},href:(e, t)=>
     // defaultMessage:"Photos"},href:(e, t)=>
-    $pattern = '#defaultMessage:"Trivia"\},href:\(.,.\)\=\>'
-             . '|defaultMessage:"Videos"\},href:\(.,.\)\=\>'
-             . '|defaultMessage:"Photos"\},href:\(.,.\)\=\>'
-             . '|defaultMessage:"Cast & crew"\},href:\(.,.\)\=\>'
+    $pattern = '#defaultMessage:"Trivia"\},href:\(.,.\)\=>|defaultMessage:"Videos"\},href:\(.,.\)\=\>'
+             . '|defaultMessage:"Photos"\},href:\(.,.\)\=>|defaultMessage:"Cast & crew"\},href:\(.,.\)\=\>'
              . '|defaultMessage:"Taglines"\},href:\(.,.\)\=\>#';
 
     unset($matches);
