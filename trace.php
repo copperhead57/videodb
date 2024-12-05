@@ -805,8 +805,7 @@ function replace_javascript_srchlist ($js_file_data)
     $iframe_val = '';
     if ($iframe) 
     {
-        $iframe_val = '{name:"iframe",val:"'.$iframe.'"},';
-        $iframe_val_1 = "&iframe=".$iframe;
+        $iframe_val = "&iframe=".$iframe;
     }   
     
    // find_string  `/title/ or  `/name/ or `/interest/
@@ -814,9 +813,9 @@ function replace_javascript_srchlist ($js_file_data)
     unset($matches);
     if (preg_match($pattern, $js_file_data, $matches))
     {
-        $js_file_data = preg_replace_callback($pattern, function ($matches) use ($iframe_val) {
-            return $matches[1].'?'.$iframe_val.'&videodburl=https://www.imdb.com'.$matches[2];
-        }, $js_file_data);
+        $js_file_data = preg_replace_callback($pattern, function ($matches) use ($iframe_val) 
+                                                {return $matches[1].'?'.$iframe_val.'&videodburl=https://www.imdb.com'.$matches[2];
+                                                }, $js_file_data);
     }
     
     // find_string  TextButton,{href:
