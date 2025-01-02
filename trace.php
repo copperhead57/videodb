@@ -368,6 +368,7 @@ function request($urlonly=false)
 	if ($urlonly) return($url);
 
 	// append request parameters
+        $post = "";
         if ($_POST) {
 		$post = $request;
 	} elseif ($request) {
@@ -383,8 +384,14 @@ function request($urlonly=false)
 
     // encode possible spaces, use %20 instead of +
 	$url = preg_replace('/ /','%20', $url);
-        
-    $response = httpClient($url, $_GET['videodbreload'] != 'Y', array('post' => $post));
+
+     $c = "";
+     if (isset($_GET['videodbreload']))
+     {
+         $c = $_GET['videodbreload'];
+     }
+//$response = httpClient($url, $_GET['videodbreload'] != 'Y', array('post' => $post));        
+    $response = httpClient($url, $c != 'Y', array('post' => $post));
 
 	// url after redirect
 	get_base($response['url']);
