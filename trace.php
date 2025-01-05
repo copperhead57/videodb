@@ -140,13 +140,7 @@ function _replace_enclosed_tag_traced($matches)
 
 	// show anchor translation if debugging
         $note = '';
- /*
- * ***********
- * DO NOT PUT THIS IS PRODUCTION ***********************
- * ***********
- * temporalily commented out to stop error in page rendering on episode list page
 	$note = ($config['debug']) ? "($matches[2] -> $url)" : '';
-*/
 	// enable _top navigation for iframe mode
 	$top = ($iframe) ? ' target="_top"' : '';
 
