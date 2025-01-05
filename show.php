@@ -279,7 +279,7 @@ if (!empty($id))
 		'id' => $id,
 		'title' => $video['title']);
 	$size = sizeof($breadcrumbs['crumbs']);
-	for ($i; $i < $size-1; $i++) {
+	for ($i=0; $i < $size-1; $i++) {
 		if ($breadcrumbs['crumbs'][$i]['id'] == $id) {
 			unset($breadcrumbs['crumbs'][$size-1]);
 			break;

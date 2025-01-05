@@ -46,11 +46,11 @@ function boxeePlay(id) {
 			<li><a class="button small secondary {if !$video.next_id}disabled{/if}" href="show.php?id={$video.next_id}">&raquo;</i></a></li>
 		</ul><!-- button-group -->
 <!--
-		{if $engines.trailer || $engines.purchase || $engines.download}
+		{if !empty($engines.trailer) || !empty($engines.purchase) || !empty($engines.download)}
 		<ul class="button-group hide-for-small">
-			{if $engines.trailer}<li id="youtube"><a class="button small" href="#" onclick='showTrailer("{$video.title|escape:javascript|escape:html}"); return false;'><i class="foundicon-video"></i></a></li>{/if}
-			{if $engines.purchase}<li id="purchase"><a href="#" class="button small" onclick="toggler('purchases');return false;">X</a></li>{/if}
-			{if $engines.download}<li id="torrent"><a href="#" class="button small" onclick="toggler('torrents');return false">X</a></li>{/if}
+			{if !empty($engines.trailer)}<li id="youtube"><a class="button small" href="#" onclick='showTrailer("{$video.title|escape:javascript|escape:html}"); return false;'><i class="foundicon-video"></i></a></li>{/if}
+			{if !empty($engines.purchase)}<li id="purchase"><a href="#" class="button small" onclick="toggler('purchases');return false;">X</a></li>{/if}
+			{if !empty($engines.download)}<li id="torrent"><a href="#" class="button small" onclick="toggler('torrents');return false">X</a></li>{/if}
 		</ul>
 		{/if}
 -->
@@ -159,7 +159,7 @@ function boxeePlay(id) {
 		</div><!-- row -->
 
 		<div class="row">
-			{if $video.owner}
+			{if !empty($video.owner)}
 			<div {if $video.istv || $video.seen || $video.3d}class="small-6 large-3 columns"{else}class="small-12 large-12 columns"{/if}>
 				<p>{$lang.owner}: <a href="search.php?q={$video.owner|escape:url}&amp;fields=owner&amp;nowild=1">{$video.owner}</a>
 					{if $loggedin && $video.email && $video.owner != $loggedin && $video.who == '' && $video.diskid}
@@ -170,7 +170,7 @@ function boxeePlay(id) {
 			{/if}
 
 			{if $video.istv || $video.seen || $video.3d}
-			<div {if $video.owner}class="small-6 large-9 columns"{else}class="small-12 large-12 columns"{/if}>
+			<div {if !empty($video.owner)}class="small-6 large-9 columns"{else}class="small-12 large-12 columns"{/if}>
 				{if $video.istv}
 				<dl class="sub-nav inline" input-checkbox>
 					<dd {if $video.istv}class="active"{/if}><a href="istv" value="1">{$lang.tvepisode}</a></dd>
@@ -262,22 +262,22 @@ function boxeePlay(id) {
 		{/if}
 
 
-		{if $video.custom1name || $video.custom2name || $video.custom3name || $video.custom4name}
+		{if !empty($video.custom1name) || !empty($video.custom2name) || !empty($video.custom3name) || !empty($video.custom4name)}
 		<h4 class="subheader">{$lang.custom_details}</h4>
 
 		<div class="row">
 			<div class="small-12 columns">
 				<ul class="small-block-grid-4">
-					{if $video.custom1name}
+					{if !empty($video.custom1name)}
 					<li>{$video.custom1name}: {$video.custom1out}</li>{/if}
 
-					{if $video.custom2name}
+					{if !empty($video.custom2name)}
 					<li>{$video.custom2name}: {$video.custom2out}</li>{/if}
 
-					{if $video.custom3name}
+					{if !empty($video.custom3name)}
 					<li>{$video.custom3name}: {$video.custom3out}</li>{/if}
 
-					{if $video.custom4name}
+					{if !empty($video.custom4name)}
 					<li>{$video.custom4name}: {$video.custom4out}</li>{/if}
 				</ul>
 			</div><!-- col -->
