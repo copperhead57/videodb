@@ -846,7 +846,11 @@ function get_owner_id($id, $diskid = false)
     $SELECT .= ($diskid) ? "diskid = '$id'" : "id = $id";
 
     $result = runSQL($SELECT);
-    return $result[0]['owner_id'];
+    if (isset($result[0]['owner_id']))
+    {
+        return $result[0]['owner_id'];
+    }
+    return;
 }
 
 /**
