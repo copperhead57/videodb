@@ -107,7 +107,7 @@ if (empty($id))
 	$count  = 0;
     $all    = strtoupper($lang['radio_all']);
     $WHERES = '';
-    
+    $JOINS = '';
     if ($config['multiuser'])
     {
         // explicit setting of owner
@@ -261,6 +261,8 @@ if (!empty($id))
 */
 
     // previous/next buttons
+    $video['prev_id'] = 0;
+    $video['next_id'] = 0;
     if (is_array($ids = session_get('query_result')))
     {
         if (($key = array_search($id, $ids)) !== false)

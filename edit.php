@@ -195,7 +195,7 @@ if ($config['xml'] && ($import == 'xml'))
 }
 
 // legacy
-if ($imdb) $lookup = 1;
+if (isset($imdb) && $imdb) {$lookup = 1;}
 
 // get default lookup mode (0=ignore, 1=lookup, 2=overwrite) if not set
 if (!isset($lookup)) $lookup = (empty($id)) ? $lookup = $config['lookupdefault_new'] : $config['lookupdefault_edit'];
@@ -339,7 +339,12 @@ if ($save)
     set_userseen($id, $seen);
 
     // uploaded cover?
-    processUpload($id, $_FILES['coverupload']['tmp_name'], $_FILES['coverupload']['type'], $_FILES['coverupload']['name']);
+    if (isset($_FILES['coverupload']['tmp_name']) && 
+        isset($_FILES['coverupload']['type']) &&
+        isset($_FILES['coverupload']['name']))
+    {
+        processUpload($id, $_FILES['coverupload']['tmp_name'], $_FILES['coverupload']['type'], $_FILES['coverupload']['name']);
+    }
 
     // make sure no artifacts
     $smarty->clearCache('list.tpl');

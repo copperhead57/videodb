@@ -124,9 +124,14 @@ function escapeSQL($sql_string)
 {
     global $dbh;
 
-    if (!is_resource($dbh)) $dbh = getConnection();
+    if (!is_null($sql_string))
+    {
+        if (!is_resource($dbh)) $dbh = getConnection();
+    
+        return(mysqli_real_escape_string($dbh, $sql_string));
+    }
 
-    return(mysqli_real_escape_string($dbh, $sql_string));
+    return ("");
 }
 
 /**
