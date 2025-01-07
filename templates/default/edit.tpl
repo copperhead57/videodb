@@ -145,28 +145,28 @@
           </td>
         </tr>
 
-        {if $video.custom1name}
+        {if !empty($video.custom1name)}
         <tr>
           <td>{$video.custom1name}</td>
           <td>{$video.custom1in}</td>
         </tr>
         {/if}
 
-        {if $video.custom2name}
+        {if !empty($video.custom2name)}
         <tr>
           <td>{$video.custom2name}</td>
           <td>{$video.custom2in}</td>
         </tr>
         {/if}
 
-        {if $video.custom3name}
+        {if !empty($video.custom3name)}
         <tr>
           <td>{$video.custom3name}</td>
           <td>{$video.custom3in}</td>
         </tr>
         {/if}
 
-        {if $video.custom4name}
+        {if !empty($video.custom4name)}
         <tr>
           <td>{$video.custom4name}</td>
           <td>{$video.custom4in}</td>
@@ -265,7 +265,7 @@
           </td>
         </tr>
 
-        {if $owners}
+        {if !empty($owners)}
         <tr>
           <td>
             {$lang.owner}
@@ -282,7 +282,7 @@
   </table>
 
   <b>{$lang.radio_look_caption}:</b> {html_radios name=lookup options=$lookup checked="$lookup_id"}
-  {html_checkbox name="add_flag" value=1 checked=$add_flag label=$lang.add_another}
+  {if !empty($add_flag)}{html_checkbox name="add_flag" value=1 checked=$add_flag label=$lang.add_another}{/if}
   <div align="center"><input type="submit" value="{$lang.save}" accesskey="s" /></div>
   <br />
 </form>

@@ -76,7 +76,11 @@ function dlog($var)
  */
 function formvar($name)
 {
+    if (!is_null($name))
+    {
 	return htmlspecialchars($name);
+    }
+    return "";
 }
 
 /**

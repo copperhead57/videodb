@@ -65,7 +65,7 @@
 						<dt>{$lang.fieldselect}:</dt>
 					</dl>
 				</div><!-- col -->
-				<div class="small-10 {if $owners}large-7{else}large-11{/if} columns">
+				<div class="small-10 {if !empty($owners)}large-7{else}large-11{/if} columns">
 					<dl class="sub-nav" input-checkbox>
 						{foreach from=$search_fields key=k item=v}
 						<dd {if $k|in_array:$selected_fields}class="active"{/if}><a href="fields[]" value="{$k}">{$v|escape}</a></dd>
@@ -73,7 +73,7 @@
 					</dl>
 				</div><!-- col -->
 
-				{if $owners}
+				{if !empty($owners)}
 				<div class="small-2 large-1 columns">
 					<dl class="sub-nav" input-radio>
 						<dt>{$lang.owner}:</dt>

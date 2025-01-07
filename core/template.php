@@ -507,11 +507,11 @@ function tpl_edit($video)
 	global $smarty, $config, $lang;
 
 	// create a form ready quoted version for each value
-	foreach (array_keys($video) as $key)
+    foreach (array_keys($video) as $key)
     {
-		$video['q_'.$key] = formvar($video[$key]);
-	}
-
+        $video['q_'.$key] = formvar($video[$key]);
+    }           
+            
 	// use custom function for language
 	$video['f_language']  = custom_language_input('language', $video['language']);
 
@@ -519,8 +519,8 @@ function tpl_edit($video)
     $smarty->assign('mediatypes', out_mediatypes());
     if (!isset($video['mediatype'])) $video['mediatype'] = $config['mediadefault'];
 
-	// prepare the custom fields
-	customfields($video, 'in');
+    // prepare the custom fields
+    customfields($video, 'in');
 
     if ($config['multiuser'])
     {

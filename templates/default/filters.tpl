@@ -16,7 +16,7 @@
       <td align="right" class="filter">
         <input type="checkbox" name="showtv" id="showtv" value="1" {if $showtv}checked="checked"{/if} onclick="submit()" /><label for="showtv">{$lang.radio_showtv}</label>
       </td>
-      {if $owners}
+      {if !empty($owners)}
       <td class="filter">
         <div align="right">
           {html_options name=owner options=$owners selected=$owner onchange="submit()"}

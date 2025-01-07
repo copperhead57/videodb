@@ -21,6 +21,8 @@ require_once './engines/engines.php';
 // check for localnet
 localnet_or_die();
 
+global $CLIENTERROR;
+
 /**
  * input id
  */
@@ -399,9 +401,13 @@ if ($config['autoid'] && (empty($diskid) || $add_flag) && $mediatype != MEDIA_WI
 {
     $video[0]['diskid'] = getDiskId();
     
-	// Fix for Bugreport [1122052] Automatic DiskID generation problem
-	$smarty->assign('autoid', $result[0]['max']);
+    // Fix for Bugreport [1122052] Automatic DiskID generation problem
+    $smarty->assign('autoid', $result[0]['max']);
 }
+else 
+ {
+    $smarty->assign('autoid', "");
+ }
 
 if (empty($video[0]['owner_id']) && !empty($owner_id))
 {

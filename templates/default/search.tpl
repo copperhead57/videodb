@@ -37,7 +37,7 @@
         <a href="javascript:selectAllFields()">{$lang.selectall}</a>
       </td>
       <td nowrap="nowrap">
-        {if $owners}
+        {if !empty($owners)}
           <span>{$lang.owner}:</span>
           {html_options name=owner options=$owners selected=$video.owner_id}<br/>
         {/if}

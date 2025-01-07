@@ -37,7 +37,7 @@
             <span class="filterlink" style="font-size:10px; font-weight: bold;"><a href="javascript:selectAllFields()">{$lang.selectall}</a></span>
         </td>
         <td width="60%" rowspan="2">
-            {if $owners}
+            {if !empty($owners)}
             <span class="filterlink">{$lang.owner}:</span>
             {html_options name=owner options=$owners selected=$owner}<br/>
             {/if}
