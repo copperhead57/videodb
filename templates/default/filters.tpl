@@ -8,7 +8,7 @@
       <td class="filter">
         {html_radios name=filter options=$filters checked=$filter label_class="filterlink" onclick="submit()"}
       </td>
-      {if $order_options AND $filter<>'new'}
+      {if !empty($order_options) AND $filter<>'new'}
       <td align="right" class="filter" nowrap="nowrap">
         <label class="filterlink" for="order">{$lang.order}: </label>{html_options name="order" id="order" options=$order_options selected=$order onchange="submit()"}
       </td>
