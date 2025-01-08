@@ -134,14 +134,14 @@
           </td>
         </tr>
 
-        {if $video.custom1name}
+        {if !empty($video.custom1name)}
         <tr>
             <td><span class="editcaption">{$video.custom1name}:</span></td>
             <td>{$video.custom1in}</td>
         </tr>
         {/if}
 
-        {if $video.custom3name}
+        {if !empty($video.custom3name)}
         <tr>
             <td><span class="editcaption">{$video.custom3name}:</span></td>
             <td>{$video.custom3in}</td>
@@ -210,21 +210,21 @@
           <td><textarea cols="40" rows="3" name="comment" id="comment" wrap="virtual">{$video.q_comment}</textarea></td>
         </tr>
 
-        {if $video.custom2name}
+        {if !empty($video.custom2name)}
         <tr>
             <td><span class="editcaption">{$video.custom2name}:</span></td>
             <td>{$video.custom2in}</td>
         </tr>
         {/if}
 
-        {if $video.custom4name}
+        {if !empty($video.custom4name)}
         <tr>
             <td><span class="editcaption">{$video.custom4name}:</span></td>
             <td>{$video.custom4in}</td>
         </tr>
         {/if}
 
-        {if $owners}
+        {if !empty($owners)}
         <tr>
             <td>{$lang.owner}</td>
             <td>
@@ -243,7 +243,7 @@
     </script>
 
   {$lang.radio_look_caption}: {html_radios name=lookup options=$lookup checked="$lookup_id"}
-  <label for="add_flag"><input type="checkbox" name="add_flag" id="add_flag" value="1" {if $add_flag}checked="checked"{/if}/>{$lang.add_another}</label>
+  <label for="add_flag"><input type="checkbox" name="add_flag" id="add_flag" value="1" {if !empty($add_flag)}checked="checked"{/if} />{$lang.add_another}</label>
   <div align="center"><input type="submit" value="{$lang.save}" class="button" accesskey="s" /></div>
 </form>
 </div>

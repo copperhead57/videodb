@@ -33,7 +33,7 @@
 				<div class="small-6 large-6 columns">
 					<dl class="sub-nav" input-checkbox>
 					<dt>{$lang.create_}</dt>
-						<dd {if $add_flag}class="active"{/if}><a href="add_flag" value="1">{$lang.add_another}</a></dd>
+						<dd {if !empty($add_flag)}class="active"{/if}><a href="add_flag" value="1">{$lang.add_another}</a></dd>
 					</dl>
 				</div><!-- col -->
 
@@ -137,7 +137,9 @@
 					</dl>
 
 					<dl class="sub-nav inline" input-checkbox>
-						<dd {if $video.3d}class="active"{/if}><a href="3d" value="1">{$lang.3d}3D</a></dd>
+					{*	<dd {if $video.3d}class="active"{/if}><a href="3d" value="1">{$lang.3d}3D</a></dd> *}
+                                                <dd {if !empty($video.3d)}class="active"{/if}>
+                                                    <a href="3d" value="1">{$lang.3d}</a>
 					</dl>
 				</div><!-- col -->
 			</div><!-- row -->
@@ -176,14 +178,14 @@
 
 				<div class="small-12 large-6 columns">
 				<div class="row">
-					{if $owners}
+					{if !empty($owners)}
 					<div class="small-6 columns">
 						<label>{$lang.owner}</label>
 						{html_options name=owner_id options=$owners selected=$video.owner_id}
 					</div><!-- col -->
 					{/if}
 
-					<div class="{if $owners}small-6{else}small-12{/if} columns">
+					<div class="{if !empty($owners)}small-6{else}small-12{/if} columns">
 						<label for="imdbID">
 							{$lang.extid}
 						</label>
@@ -295,28 +297,36 @@
 			</div><!-- row -->
 
 
-			{if $video.custom1name || $video.custom2name || $video.custom3name || $video.custom4name}
-			<h4 class="subheader">{$lang.custom_details}</h4>
+			{if !empty($video.custom1name) || !empty($video.custom2name) || !empty($video.custom3name) || !empty($video.custom4name)}
+                            <h4 class="subheader">{$lang.custom_details}</h4>
 
-			<div class="row">
-				<div class="small-6 columns">
-					<label>{$video.custom1name}</label>{$video.custom1in}
-				</div><!-- col -->
+                            <div class="row">
+                                {if !empty($video.custom1name)}
+                                    <div class="small-6 columns">
+                                        <label>{$video.custom1name}</label>{$video.custom1in}
+                                    </div><!-- col -->
+                                {/if}
 
-				<div class="small-6 columns">
-					<label>{$video.custom2name}</label>{$video.custom2in}
-				</div><!-- col -->
-			</div><!-- row -->
+                                {if !empty($video.custom2name)}
+                                    <div class="small-6 columns">
+                                        <label>{$video.custom2name}</label>{$video.custom2in}
+                                    </div><!-- col -->
+                                {/if}
+                            </div><!-- row -->
 
-			<div class="row">
-				<div class="small-6 columns">
-					<label>{$video.custom3name}</label>{$video.custom3in}
-				</div><!-- col -->
+                            <div class="row">
+                                {if !empty($video.custom3name)}
+                                    <div class="small-6 columns">
+                                        <label>{$video.custom3name}</label>{$video.custom3in}
+                                    </div><!-- col -->
+                                {/if}
 
-				<div class="small-6 columns">
-					<label>{$video.custom4name}</label>{$video.custom4in}
-				</div><!-- col -->
-			</div><!-- row -->
+                                {if !empty($video.custom4name)}
+                                    <div class="small-6 columns">
+                                        <label>{$video.custom4name}</label>{$video.custom4in}
+                                    </div><!-- col -->
+                                {/if}
+                            </div><!-- row -->
 			{/if}
 
 		</div><!-- col -->

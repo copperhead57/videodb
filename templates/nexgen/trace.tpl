@@ -10,7 +10,7 @@
 <div class="row header">
 <!--
 	<h3>URL: </h3><a href="{$url}" target="_blank">{$url}</a>
-	<nobr>{if $fetchtime}<span class="filterlink">{$lang.fetchtime}: </span>{$fetchtime}s{else}&nbsp;{/if}{if $md5} {$md5}{/if}</nobr>
+	<nobr>{if $fetchtime}<span class="filterlink">{$lang.fetchtime}: </span>{$fetchtime}s{else}&nbsp;{/if}{if !empty($md5)} {$md5}{/if}</nobr>
 -->
 	<div class="small-12 columns">
 		<ul class="button-group right">
