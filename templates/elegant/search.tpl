@@ -35,7 +35,7 @@
         <br/>
         {include file="searchradios.tpl"}
 
-        {if $owners}
+        {if !empty($owners)}
             <p>
             <h3>{$lang.owner}:</h3>
             {html_options name=owner id=owner options=$owners selected=$owner}<br/>
