@@ -57,7 +57,7 @@ Event.observe(document, 'dom:loaded', function()
      */
     function submit_form(event)
     {
-//        if (!$F('q')) return;        
+        if (!$F('q')) return;        
         $('indicator1').setStyle({display: 'inline'});
 
         new Ajax.Request('search.php', {

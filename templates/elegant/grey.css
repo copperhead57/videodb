@@ -411,6 +411,7 @@ h4 {				/* used on edit page */
 
 .list_info, .list_seen, .list_plot {
 	font-size: 11px;
+	padding-bottom:5px;
 }
 
 .list_info {
@@ -442,6 +443,14 @@ h4 {				/* used on edit page */
 	padding: 2px;
 }
 
+.list_item {
+	padding: 5px;
+}
+
+.list_item .cover {
+	padding-right: 5px;
+	padding-bottom: 5px;
+}
 
 /*
  * Images
