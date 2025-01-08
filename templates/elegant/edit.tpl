@@ -156,7 +156,7 @@ Event.observe(document, 'dom:loaded', function() {
           </td>
         </tr>
 
-        {if $owners}
+        {if !empty($owners)}
         <tr>
             <td>{$lang.owner}</td>
             <td>
@@ -165,14 +165,14 @@ Event.observe(document, 'dom:loaded', function() {
         </tr>
         {/if}
 
-        {if $video.custom1name}
+        {if !empty($video.custom1name)}
         <tr>
             <td><h4>{$video.custom1name}:</h4></td>
             <td>{$video.custom1in}</td>
         </tr>
         {/if}
 
-        {if $video.custom3name}
+        {if !empty($video.custom3name)}
         <tr>
             <td><h4>{$video.custom3name}:</h4></td>
             <td>{$video.custom3in}</td>
@@ -239,14 +239,14 @@ Event.observe(document, 'dom:loaded', function() {
           <td><textarea cols="40" rows="3" name="comment" id="comment" wrap="virtual">{$video.q_comment}</textarea></td>
         </tr>
 
-        {if $video.custom2name}
+        {if !empty($video.custom2name)}
         <tr>
             <td><h4>{$video.custom2name}:</h4></td>
             <td>{$video.custom2in}</td>
         </tr>
         {/if}
 
-        {if $video.custom4name}
+        {if !empty($video.custom4name)}
         <tr>
             <td><h4>{$video.custom4name}:</h4></td>
             <td>{$video.custom4in}</td>
@@ -260,7 +260,7 @@ Event.observe(document, 'dom:loaded', function() {
 
 <div id="editbuttons">
 	{$lang.radio_look_caption}: {html_radios name=lookup options=$lookup checked="$lookup_id"}
-	<label for="add_flag"><input type="checkbox" name="add_flag" id="add_flag" value="1" {if $add_flag}checked="checked"{/if}/>{$lang.add_another}</label>
+	<label for="add_flag"><input type="checkbox" name="add_flag" id="add_flag" value="1" {if !empty($add_flag)}checked="checked"{/if} />{$lang.add_another}</label>
 	<input type="submit" class="button" value="{$lang.save}" id="savebutton" accesskey="s" />
 </div>
 

@@ -139,7 +139,7 @@
         {if $video.mediatype}
             <tr><td><b>{$lang.mediatype}:</b></td><td><a href="search.php?q=%22{$video.mediatype|escape:url}%22&fields=mediatype&nowild=1">{$video.mediatype}</a></td></tr>
         {/if}
-        {if $video.owner}
+        {if !empty($video.owner)}
             <tr>
                 <td><b>{$lang.owner}:</b></td>
                 <td><a href="search.php?q={$video.owner|escape:url}&fields=owner&nowild=1">{$video.owner}</a>
@@ -149,25 +149,25 @@
                 </td>
             </tr>
         {/if}
-        {if $video.custom1name && $video.custom1out}
+        {if !empty($video.custom1name) && !empty($video.custom1out)}
             <tr>
                 <td><b>{$video.custom1name}:</b></td>
                 <td>{$video.custom1out}</td>
             </tr>
         {/if}
-        {if $video.custom2name && $video.custom2out}
+        {if !empty($video.custom2name) && !empty($video.custom2out)}
             <tr>
                 <td><b>{$video.custom2name}:</b></td>
                 <td>{$video.custom2out}</td>
             </tr>
         {/if}
-        {if $video.custom3name && $video.custom3out}
+        {if !empty($video.custom3name) && !empty($video.custom3out)}
             <tr>
                 <td><b>{$video.custom3name}:</b></td>
                 <td>{$video.custom3out}</td>
             </tr>
         {/if}
-        {if $video.custom4name && $video.custom4out}
+        {if !empty($video.custom4name) && !empty($video.custom4out)}
             <tr>
                 <td><b>{$video.custom4name}:</b></td>
                 <td>{$video.custom4out}</td>
@@ -194,7 +194,7 @@
   </tr>
 </table>
 {/if}
-{if $video.episodes}{include file="episodes.tpl"}{/if}
+{if !empty($video.episodes)}{include file="episodes.tpl"}{/if}
 <table width="100%" class="show_info">
 {if $video.filename}
   <tr>

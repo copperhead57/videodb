@@ -36,9 +36,9 @@ function get_base($url)
 	global $uri;
 
 	$uri = parse_url($url);
-	if (!$uri['scheme']) $uri['scheme'] = 'http';
-	if (!$uri['host']) $uri['host'] = 'localhost';
-	if (!$uri['path']) $uri['path'] = '/';
+        if (!array_key_exists('scheme', $uri)) {$uri['scheme'] = 'http';}
+        if (!array_key_exists('host', $uri)) {$uri['host'] = 'localhost';} 
+        if (!array_key_exists('path', $uri)) {$uri['path'] = '/';}
 	$uri['server'] = $uri['scheme'].'://'.$uri['host'];
 
 	// remove filename from path if recognized file type
@@ -139,8 +139,8 @@ function _replace_enclosed_tag_traced($matches)
 	$url = preg_replace("/&".session_name()."=[\d|\w]+$/", '', $url);
 
 	// show anchor translation if debugging
+        $note = '';
 	$note = ($config['debug']) ? "($matches[2] -> $url)" : '';
-
 	// enable _top navigation for iframe mode
 	$top = ($iframe) ? ' target="_top"' : '';
 
@@ -150,6 +150,7 @@ function _replace_enclosed_tag_traced($matches)
     // what's our host?
     $engine = (preg_match('/(imdb|amazon|filmweb)/i', $uri['host'], $m)) ? $m[1] : '';
     
+    $append = '';
     if ($engine == 'imdb')
     {
         // imdb
@@ -229,6 +230,8 @@ function _replace_tag($matches)
 	if (in_array('ads', $striptags) && (strtolower($matches[2]) == 'img') && preg_match("/\/ads?\//i", $url)) return '';
 
 	// switch on tag
+        $parameters = '';
+        $append = '';
 	switch (strtolower($matches[2])) {
 		// attn: order is crucial as $url needs be saved to get overwritten
 		case 'form' :	$append = "<input type='hidden' name='$urlid' value='$url'/>";
@@ -363,6 +366,7 @@ function request($urlonly=false)
 	if ($urlonly) return($url);
 
 	// append request parameters
+        $post = "";
         if ($_POST) {
 		$post = $request;
 	} elseif ($request) {
@@ -378,8 +382,14 @@ function request($urlonly=false)
 
     // encode possible spaces, use %20 instead of +
 	$url = preg_replace('/ /','%20', $url);
-        
-    $response = httpClient($url, $_GET['videodbreload'] != 'Y', array('post' => $post));
+
+     $dbreload = "";
+     if (isset($_GET['videodbreload']))
+     {
+         $dbreload = $_GET['videodbreload'];
+     }
+     
+    $response = httpClient($url, $dbreload != 'Y', array('post' => $post));
 
 	// url after redirect
 	get_base($response['url']);
@@ -792,6 +802,7 @@ function replace_javascript_search ($js_file_data)
     global $iframe;
     $url = getScheme().'://'.$_SERVER['HTTP_HOST'].$_SERVER['PHP_SELF'];
     $iframe_val = '';
+    $iframe_val_1 = '';
     if ($iframe) 
     {
         $iframe_val = '{name:"iframe",val:"'.$iframe.'"},';
@@ -1352,11 +1363,14 @@ else
     */
 }
 
-if (    $iframe == 2 || 
-        preg_match('#\/_ajax#', $videodburl, $matches_ajax) || 
-        preg_match('#\.json#', $videodburl, $matches_json)  ||
-        preg_match('#\_json#', $videodburl, $matches_json_1)
-    )
+if (!empty($videodburl))
+{
+    preg_match('#\/_ajax#', $videodburl, $matches_ajax);
+    preg_match('#\.json#', $videodburl, $matches_json);
+    preg_match('#\_json#', $videodburl, $matches_json_1);
+}
+
+if ($iframe == 2 || !empty($matches_ajax) || !empty($matches_json) || !empty($matches_json_1) )
 {
     if ($matches_json)
     {
