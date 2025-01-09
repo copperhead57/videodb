@@ -458,7 +458,7 @@ function get_actor_image_from_cache($result, $name, $actorid)
     if ($actorid) $imgurl .= '&actorid='.urlencode($actorid);
 
     // really an image?
-    if (preg_match('/\.(jpe?g|gif|png)$/i', $result['imgurl'], $matches))
+    if (isset($result['imgurl']) && preg_match('/\.(jpe?g|gif|png)$/i', $result['imgurl'], $matches))
     {
         if (cache_file_exists($result['imgurl'], $cache_file, CACHE_IMG, $matches[1]))
         {
@@ -489,14 +489,22 @@ function getActorThumbnail($name, $actorid = 0, $idSearchAllowed = true)
               FROM '.TBL_ACTORS;
 
 	// identify actor by unique actor id, of by name
+    $result = null;
     if ($actorid && $idSearchAllowed) {
         $result = runSQL($SQL." WHERE actorid='".escapeSQL($actorid)."'");
     }
     if (!$actorid || ((is_array($result) && count($result) == 0)) ) {
         $result = runSQL($SQL." WHERE name='".escapeSQL(html_entity_decode($name))."'");
     }
-
-    $imgurl = get_actor_image_from_cache($result[0], $name, $actorid);
+    
+    if (!is_null($result))
+    {
+        $imgurl = get_actor_image_from_cache($result[0], $name, $actorid);
+    }
+    else
+    {
+        $imgurl = get_actor_image_from_cache(null, $name, $actorid);
+    }
 
 	return($imgurl);
 }

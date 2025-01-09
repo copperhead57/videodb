@@ -360,17 +360,25 @@ function get_actor_thumbnails_batched(&$actors)
     $result = runSQL($SQL);
 
     $result = array_associate($result, 'actorid');
-
+   
     // loop over actors from full-text field
     foreach ($actors as $idx => $actor)
-    {
+    {  
         // check for actor thumbnail
-        $batch_result = $result[$actor['id']];
-        
+        $batch_result = null;
+        if (array_key_exists($actor['id'], $result))
+        {
+            $batch_result = $result[$actor['id']];
+        }
+
         if ($batch_result)
+        {
             $actors[$idx]['imgurl'] = get_actor_image_from_cache($batch_result, $actor['name'], $actor['id']);
+        }
         else
+        {
             $actors[$idx]['imgurl'] = getActorThumbnail($actor['name'], $actor['id'], false);
+        }
     }
 }
 
