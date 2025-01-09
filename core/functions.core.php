@@ -272,7 +272,7 @@ function array_associate($ary, $columnKey, $value = false)
     foreach ($ary as $row)
     {
         $res[$row[$columnKey]] = ($value) ? $row[$value] : $row;
-    }
+        }
     return $res;
 }
 

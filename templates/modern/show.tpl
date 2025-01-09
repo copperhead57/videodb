@@ -246,7 +246,7 @@
         </b>
         {if $show_cast}
             <table width="100%">
-            {counter start=0 print=false name=castcount}
+            {counter start=0 print=false name=castcount assign=count}}
             {foreach item=actor from=$video.cast}
             {if $count == 0}
             <tr>

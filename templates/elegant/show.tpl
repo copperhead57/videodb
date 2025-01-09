@@ -300,7 +300,7 @@ Event.observe(document, 'dom:loaded', function() {
     </h3>
     {if $show_cast}
         <table width="100%">
-        {counter start=0 print=false name=castcount}
+        {counter start=0 print=false name=castcount assign=count}
         {foreach $video.cast as $actor}
             {if $count == 0}
             <tr>

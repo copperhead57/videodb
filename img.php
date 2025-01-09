@@ -74,7 +74,7 @@ if ($name)
         
 	$result = engineActor($name, $actorid, engineGetActorEngine($actorid));
 
-        if ( $config['debug}'] )
+        if ( $config['debug'] )
         {
             unset($save_data_if_error_getting_image);
         }
