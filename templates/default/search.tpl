@@ -44,7 +44,7 @@
         {$lang.genre_desc}:
         {$genreselect}
       </td>
-    {if $imgurl}
+    {if !empty($imgurl)}
       <td>
 {*
           <a href='http://uk.imdb.com/Name?{$q_q|replace:"&quot;":""|escape:url}'>

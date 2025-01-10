@@ -181,7 +181,14 @@ function tpl_header($help = '', $title = '')
     $breadcrumbs = session_get('breadcrumbs', array());
 	$smarty->assign('breadcrumbs', $breadcrumbs);
 
-    $smarty->assign('title',	htmlspecialchars($title));
+    if (!is_null($title))
+    {
+        $smarty->assign('title', htmlspecialchars($title));   
+    }
+    else
+    { 
+        $smarty->assign('title', "");
+    }
     $smarty->assign('header',	$header);
     $smarty->assign('style',	$config['style']);
     $smarty->assign('langcode', $config['language']);
