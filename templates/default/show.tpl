@@ -25,7 +25,7 @@
     <td align="center" style="text-align:center">
       {if $video.diskid != ''}
         <span class="show_id"><a href="search.php?q={$video.diskid}&fields=diskid&nowild=1">{$video.diskid}</a></span>
-        {if $video.who != ''}
+        {if !empty($video.who) && $video.who != ''}
           <br />
           {$lang.notavail} {$video.who}
         {/if}
