@@ -133,6 +133,8 @@ foreach ($fields as $search_field)
 }
 
 // prepare search query
+$result = '';
+$actors = '';
 if (isset($q) &! (isset($default) && empty($q)))
 {
     $JOINS  = '';
@@ -235,7 +237,6 @@ if (isset($q) &! (isset($default) && empty($q)))
 
     $result = runSQL($select);
 
-    $actors = '';
 /*
 	// prepare actors table if searching for them
 	if (in_array('actors', $fields))
@@ -258,6 +259,7 @@ if (isset($q) &! (isset($default) && empty($q)))
     // autocomplete textbox
     if ($ajax_quicksearch)
     {
+        $ret = null;
         foreach ($result as $item)
         {
             $title  = $item['title'];

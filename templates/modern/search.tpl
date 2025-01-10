@@ -44,7 +44,7 @@
             <span class="filterlink">{$lang.genre_desc}:</span>
             {$genreselect}
         </td>
-        {if $imgurl}
+        {if !empty($imgurl)}
         <td>
 {*
             <a href='http://uk.imdb.com/Name?{$q_q|replace:"&quot;|\"":""|escape:url}'>{html_image file=$imgurl}</a>
