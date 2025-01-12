@@ -74,6 +74,8 @@ $smarty->cache_dir       = './cache/smarty';            // path to cached html
 $smarty->plugins_dir     = array('./lib/smarty/custom', SMARTY_PLUGINS_DIR);
 $smarty->use_sub_dirs    = 0;                           // restrict caching to one folder
 $smarty->loadFilter('output', 'trimwhitespace');        // remove whitespace from output
+$smarty->registerPlugin("modifier", "floor", "floor");  // fix incorrect deprec message in swmarty 4
+//
 #$smarty->setCaching(Smarty::CACHING_LIFETIME_SAVED);
 #$smarty->force_compile  = true;
 #$smarty->debugging      = true;
