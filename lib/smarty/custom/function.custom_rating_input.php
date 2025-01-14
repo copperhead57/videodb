@@ -7,11 +7,11 @@
  */
 
 /**
- * Smarty {rating_input} function plugin
+ * Smarty {custom_rating_input} function plugin
  *
- * File:       function.rating_input.php<br>
+ * File:       function.custom_rating_input.php<br>
  * Type:       function<br>
- * Name:       rating_input<br>
+ * Name:       custom_rating_input<br>
  * Purpose:    Prints out a rating input control<br>
  * Input:<br>
  *           - name       (optional) - string default "checkbox"
@@ -19,9 +19,9 @@
  *           - id         (optional) - checkbox id (name is default)
  * @return string
  */
-function smarty_function_rating_input($params, &$smarty)
+function smarty_function_custom_rating_input($params, &$smarty)
 {
-    require_once(SMARTY_PLUGINS_DIR . 'shared.escape_special_chars.php');
+//    require_once(SMARTY_PLUGINS_DIR . 'shared.escape_special_chars.php');
     //$smarty->loadPlugin('Smarty_shared_escape_special_chars');
 
     $name = 'rating';
