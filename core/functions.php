@@ -69,7 +69,8 @@ foreach (array_keys($_ENV) as $key) unset($GLOBALS[$key]);
 use Smarty\Smarty;
 $smarty = new Smarty;
 $smarty->setCompileDir('./cache/smarty');            // path to compiled templates
-$smarty->loadFilter('output', 'trimwhitespace');        // remove whitespace from output
+
+//$smarty->loadFilter('output', 'trimwhitespace');        // remove whitespace from output	
 
 $smarty->setUseSubDirs(false);                       // restrict caching to one folder
 $smarty->setCacheDir('./cache/smarty');           // path to compiled templates
