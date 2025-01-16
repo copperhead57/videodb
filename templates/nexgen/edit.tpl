@@ -12,7 +12,7 @@
 -->
 
 <form action="edit.php" method="post" enctype="multipart/form-data" name="edi">
-    <input type="hidden" name="id" value="{$video.id}" />
+    <input type="hidden" name="id" value="{if !empty($video.id)}{$video.id}{/if}" />
     <input type="hidden" name="save" value="1" />
 
 	<input type="hidden" name="autoid" value="{$autoid}" />
@@ -40,13 +40,13 @@
 				<div class="small-6 large-6 columns">
 					<ul class="button-group right hide-for-small">
 						<li>
-							<a href="{if $video.id}show.php?id={$video.id}{else}index.php{/if}" class="button small">{$lang.cancel}</a>
+							<a href="{if !empty($video.id)}show.php?id={$video.id}{else}index.php{/if}" class="button small">{$lang.cancel}</a>
 							<a href="#" class="button small submit">{$lang.save}</a>
 						</li>
 					</ul>
 					<ul class="button-group right hide-for-medium-up">
 						<li>
-							<a href="{if $video.id}show.php?id={$video.id}{else}index.php{/if}" class="button tiny">{$lang.cancel}</a>
+							<a href="{if !empty($video.id)}show.php?id={$video.id}{else}index.php{/if}" class="button tiny">{$lang.cancel}</a>
 							<a href="#" class="button tiny submit">{$lang.save}</a>
 						</li>
 					</ul>
@@ -72,31 +72,31 @@
 			<div class="row">
 				<div class="small-12 large-6 columns">
 					<label for="title">{$lang.title} <a href="javascript:void(lookupData(document.edi.title.value))"><i class="foundicon-search inline"></i></a></label>
-					<input type="text" name="title" id="title" value="{$video.q_title}" class="autofocus" />
+					<input type="text" name="title" id="title" value="{if !empty($video.q_title)}{$video.q_title}{/if}" class="autofocus" />
 				</div><!-- col -->
 
 				<div class="small-12 large-6 columns">
 					<label for="subtitle">{$lang.subtitle} <a href="javascript:void(lookupData(document.edi.subtitle.value))"><i class="foundicon-search inline"></i></a></label>
-					<input type="text" name="subtitle" id="subtitle" value="{$video.q_subtitle}"/>
+					<input type="text" name="subtitle" id="subtitle" value="{if !empty($video.q_subtitle)}{$video.q_subtitle}{/if}"/>
 				</div><!-- col -->
 			</div><!-- row -->
 
 			<div class="row">
 				<div class="small-6 large-3 columns">
 					<label for="director">{$lang.director}</label>
-					<input type="text" name="director" id="director" value="{$video.q_director}"/>
+					<input type="text" name="director" id="director" value="{if !empty($video.q_director)}{$video.q_director}{/if}"/>
 				</div><!-- col -->
 
 				<div class="small-2 large-1 columns">
 					<label for="year">{$lang.year}</label>
-					<input type="text" name="year" id="year" value="{$video.year}"/>
+					<input type="text" name="year" id="year" alue="{if !empty($video.year)}{$video.year}{/if}"/>
 				</div><!-- col -->
 
 				<div class="small-4 large-2 columns">
 					<div class="row collapse">
 						<label for="runtime">{$lang.runtime}</label>
 						<div class="small-8 columns">
-							<input type="text" name="runtime" id="runtime" value="{$video.q_runtime}" />
+							<input type="text" name="runtime" id="runtime" value="{if !empty($video.q_runtime)}{$video.q_runtime}{/if}" />
 						</div><!-- col -->
 						<div class="small-4 columns"><span class="postfix">min</span></div>
 					</div><!-- row -->
@@ -104,7 +104,7 @@
 
 				<div class="small-6 large-3 columns">
 					<label for="country">{$lang.country}</label>
-					<input type="text" name="country" id="country" value="{$video.q_country}"/>
+					<input type="text" name="country" id="country" value="{if !empty($video.q_country)}{$video.q_country}{/if}"/>
 				</div><!-- col -->
 
 				<div class="small-6 large-3 columns">
@@ -121,19 +121,24 @@
 				</div><!-- col -->
 				<div class="small-4 large-5 columns">
 					<dl class="sub-nav tight" input-radio>
-						{for $r=0 to 10}
-						<dd {if $r == $video.rating|round}class="active"{/if}><a href="rating" value="{$r}">{$r}</a></dd>
-						{/for}
+                                            {if !empty($video.rating)}
+                                                {$rate = $video.rating}
+                                            {else}
+                                                {$rate = 0}
+                                            {/if}
+                                            {for $r=0 to 10}
+                                                <dd {if $r == $rate|round}class="active"{/if}><a href="rating" value="{$r}">{$r}</a></dd>
+                                            {/for}
 					</dl>
 				</div><!-- col -->
 
 				<div class="small-6 columns">
 					<dl class="sub-nav inline" input-checkbox>
-						<dd {if $video.seen}class="active"{/if}><a href="seen" value="1">{$lang.seen}</a></dd>
+						<dd {if !empty($video.seen)}class="active"{/if}><a href="seen" value="1">{$lang.seen}</a></dd>
 					</dl>
 
 					<dl class="sub-nav inline" input-checkbox>
-						<dd {if $video.istv}class="active"{/if}><a href="istv" value="1">{$lang.tvepisode}</a></dd>
+						<dd {if !empty($video.istv)}class="active"{/if}><a href="istv" value="1">{$lang.tvepisode}</a></dd>
 					</dl>
 
 					<dl class="sub-nav inline" input-checkbox>
@@ -153,7 +158,7 @@
 				<div class="small-10 large-11 columns">
 					<dl class="sub-nav" input-checkbox>
 						{foreach $genres as $genre}
-						<dd {if $genre.checked}class="active"{/if}><a href="genres[]" value="{$genre.id}">{$genre.name}</a></dd>
+						<dd {if !empty($genre.checked)}class="active"{/if}><a href="genres[]" value="{$genre.id}">{$genre.name}</a></dd>
 						{/foreach}
 					</dl>
 				</div><!-- col -->
@@ -172,7 +177,7 @@
 
 					<div class="small-6 columns">
 						<label for="diskid">{$lang.diskid}</label>
-						<input type="text" name="diskid" id="diskid" value="{$video.q_diskid}" />
+						<input type="text" name="diskid" id="diskid" value="{if !empty($video.q_diskid)}{$video.q_diskid}{/if}" />
 					</div><!-- col -->
 				</div></div><!-- row/col -->
 
@@ -192,10 +197,10 @@
 
 						<div class="row collapse">
 							<div class="small-8 columns">
-								<input type="text" name="imdbID" id="imdbID" value="{$video.q_imdbID}" />
+								<input type="text" name="imdbID" id="imdbID" value="{if !empty($video.q_imdbID)}{$video.q_imdbID}{/if}" />
 							</div><!-- col -->
 							<div class="small-4 columns">
-								<a href="{$link}" target="_blank" class="button postfix {if !$link}disabled{/if}">{$lang.visit}</a>
+								<a href="{if !empty($link)}{$link}{/if}" target="_blank" class="button postfix {if empty($link)}disabled{/if}">{$lang.visit}</a>
 							</div><!-- col -->
 						</div><!-- row -->
 					</div><!-- col -->
@@ -209,7 +214,7 @@
 						<a href="javascript:void(lookupImage(document.edi.title.value))"><i class="foundicon-search inline"></i></a>
 					</label>
 
-					<input type="text" name="imgurl" id="imgurl" value="{$video.q_imgurl}" />
+					<input type="text" name="imgurl" id="imgurl" value="{if !empty($video.q_imgurl)}{$video.q_imgurl}{/if}" />
 				</div><!-- col -->
 
 				<div class="small-12 large-6 columns">
@@ -231,17 +236,17 @@
 			<div class="row">
 				<div class="small-12 large-6 columns">
 					<label for="plot">{$lang.plot}</label>
-					<textarea class="large" name="plot" id="plot" wrap="virtual">{$video.q_plot}</textarea>
+					<textarea class="large" name="plot" id="plot" wrap="virtual">{if !empty($video.q_plot)}{$video.$video.q_plot}{/if}</textarea>
 				</div><!-- col -->
 
 				<div class="small-12 large-6 columns">
 					<label for="actors">{$lang.cast}</label>
-					<textarea class="large" name="actors" id="actors" wrap="off">{$video.q_actors}</textarea>
+					<textarea class="large" name="actors" id="actors" wrap="off">{if !empty($video.q_actors)}{$video.q_actors}{/if}</textarea>
 				</div><!-- col -->
 
 				<div class="small-12 columns">
 					<label for="comment">{$lang.comment}</label>
-					<textarea class="large" name="comment" id="comment" wrap="virtual">{$video.q_comment}</textarea>
+					<textarea class="large" name="comment" id="comment" wrap="virtual">{if !empty($video.q_comment)}{$video.q_comment}{/if}</textarea>
 				</div><!-- col -->
 			</div><!-- row -->
 
@@ -251,19 +256,19 @@
 			<div class="row">
 				<div class="small-12 large-6 columns">
 					<label for="filename">{$lang.filename}</label>
-					<input type="text" name="filename" id="filename" value="{$video.q_filename}"/>
+					<input type="text" name="filename" id="filename" value="{if !empty($video.q_filename)}{$video.q_filename}{/if}"/>
 				</div><!-- col -->
 
 				<div class="small-6 large-4 columns">
 					<label for="filedate">{$lang.filedate}</label>
-					<input type="text" name="filedate" id="filedate" value="{$video.q_filedate}"/>
+					<input type="text" name="filedate" id="filedate" value="{if !empty($video.q_filedate)}{$video.q_filedate}{/if}"/>
 				</div><!-- col -->
 
 				<div class="small-6 large-2 columns">
 					<div class="row collapse">
 						<label for="filesize">{$lang.filesize}</label>
 						<div class="small-8 columns">
-							<input type="text" name="filesize" id="filesize" value="{$video.q_filesize}"/>
+							<input type="text" name="filesize" id="filesize" value="{if !empty($video.q_filesize)}{$video.q_filesize}{/if}"/>
 						</div><!-- col -->
 						<div class="small-4 columns"><span class="postfix">{$lang.bytes}</span></div>
 					</div><!-- row -->
@@ -273,23 +278,23 @@
 			<div class="row">
 				<div class="small-6 large-5 columns">
 					<label for="audio_codec">{$lang.audiocodec}</label>
-					<input type="text" name="audio_codec" id="audio_codec" value="{$video.q_audio_codec}" />
+					<input type="text" name="audio_codec" id="audio_codec" value="{if !empty($video.q_audio_codec)}{$video.q_audio_codec}{/if}" />
 				</div><!-- col -->
 
 				<div class="small-6 large-5 columns">
 					<label for="video_codec">{$lang.videocodec}</label>
-					<input type="text" name="video_codec" id="video_codec" value="{$video.q_video_codec}" />
+					<input type="text" name="video_codec" id="video_codec" value="{if !empty($video.q_video_codec)}{$video.q_video_codec}{/if}" />
 				</div><!-- col -->
 
 				<div class="small-12 large-2 columns">
 					<div class="row collapse">
 						<label for="video_width">{$lang.dimension}</label>
 						<div class="small-5 columns">
-							<input type="text" name="video_width" id="video_width" value="{$video.q_video_width}"/>
+							<input type="text" name="video_width" id="video_width" value="{if !empty($video.q_video_width)}{$video.q_video_width}{/if}"/>
 						</div><!-- col -->
 						<div class="small-2 column"><span class="postfix">x</span></div>
 						<div class="small-5 columns">
-							<input type="text" name="video_height" id="video_height" value="{$video.q_video_height}"/>
+							<input type="text" name="video_height" id="video_height" value="{if !empty($video.q_video_height)}{$video.q_video_height}{/if}"/>
 						</div><!-- col -->
 					</div><!-- row -->
 				</div><!-- col -->

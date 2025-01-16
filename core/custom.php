@@ -63,13 +63,18 @@ function customfields(&$video, $inout)
 	$inout_function = ($inout == 'in') ? '_input' : '_output';
 	for ($i=1; $i < 5; $i++) 
     {
-		if (!empty($config['custom'.$i])) 
+        if (!empty($config['custom'.$i])) 
         {
-			$video['custom'.$i.'name'] = $config['custom'.$i];
-			$run = 'custom_'.$config['custom'.$i.'type'].$inout_function;
-			$video['custom'.$i.$inout]  = $run('custom'.$i,$video['custom'.$i]);			
-		}
-	}
+            $video['custom'.$i.'name'] = $config['custom'.$i];
+            $run = 'custom_'.$config['custom'.$i.'type'].$inout_function;
+            $custom_value = null;
+            if (array_key_exists('custom'.$i, $video))
+            {
+                $custom_value = $video['custom'.$i];  
+            }
+            $video['custom'.$i.$inout]  = $run('custom'.$i,$custom_value);			
+        }
+    }
 }
 
 /**

@@ -542,8 +542,15 @@ function tpl_edit($video)
         $smarty->assign('owners', out_owners(array('0' => ''), (check_permission(PERM_ADMIN)) ? false : PERM_WRITE, true));
     }
 
-	// item genres
+    // item genres
+    if (array_key_exists('id', $video))
+    {
 	$item_genres = getItemGenres($video['id']);
+    }
+    else
+    {
+        $item_genres = array();
+    }
 	// new-style
     $smarty->assign('genres', out_genres2($item_genres));
 #dlog(out_genres2($item_genres));
@@ -555,7 +562,7 @@ function tpl_edit($video)
 	$smarty->assign('video', $video);
 
 	// get drilldown url for visit link
-	if ($video['imdbID'])
+	if (array_key_exists('imdbID', $video))
     {
         require_once './engines/engines.php';
         $engine = engineGetEngine($video['imdbID']);	
