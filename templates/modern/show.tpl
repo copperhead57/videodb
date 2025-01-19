@@ -108,7 +108,7 @@
             <td>{html_rating value=$video.rating}</td>
           </tr>
 
-	{if $engines.trailer}
+	{if !empty($engines.trailer)}
           <tr>
             <td colspan="2">
     		  <a href="#" onclick='showTrailer("{$video.title|escape:javascript|escape:html}"); return false;'>{$lang.trailer_show}</a>

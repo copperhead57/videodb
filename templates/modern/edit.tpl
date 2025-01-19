@@ -203,7 +203,7 @@
 
         <tr>
           <td><span class="editcaption">{$lang.plot}:</span></td>
-          <td><textarea cols="40" rows="8" name="plot" id="plot" wrap="virtual">{if !empty($video.q_plot)}{$video.$video.q_plot}{/if}</textarea></td>
+          <td><textarea cols="40" rows="8" name="plot" id="plot" wrap="virtual">{if !empty($video.q_plot)}{$video.q_plot}{/if}</textarea></td>
         </tr>
 
         <tr>

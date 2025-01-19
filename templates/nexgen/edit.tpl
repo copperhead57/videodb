@@ -236,7 +236,7 @@
 			<div class="row">
 				<div class="small-12 large-6 columns">
 					<label for="plot">{$lang.plot}</label>
-					<textarea class="large" name="plot" id="plot" wrap="virtual">{if !empty($video.q_plot)}{$video.$video.q_plot}{/if}</textarea>
+					<textarea class="large" name="plot" id="plot" wrap="virtual">{if !empty($video.q_plot)}{$video.q_plot}{/if}</textarea>
 				</div><!-- col -->
 
 				<div class="small-12 large-6 columns">

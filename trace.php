@@ -401,7 +401,7 @@ function request($urlonly=false)
 	}
     else
     {
-		if (!$cache) putHTTPcache($url.$post, $response);
+		if (isset($cache) && !$cache) putHTTPcache($url.$post, $response);
 		$page = $response['data'];
 	}
 	return $page;
@@ -1424,16 +1424,21 @@ $file_path = './cache/'.date("Y-m-d")." T".date("H-i-s").' - pagedata-html-befor
 file_put_contents($file_path, $page);
  */
 $smarty->assign('url', $url);
-$smarty->assign('page', $page);
-$smarty->assign('fetchtime', $fetchtime);
 
-// extract meta element to pass to header
-//                <meta name="next-head-count" content="nn"/>
-if (preg_match('#\<meta name\="next\-head\-count" content\="\d+"/\>#',$page,$m1))
+if ($iframe <> 1)
 {
-    $smarty->assign('trace_meta', $m1[0]);
-}
+    // $page & fetchtime not set if nexgen template in use
+    $smarty->assign('page', $page);
+    $smarty->assign('fetchtime', $fetchtime);
+    
+    // extract meta element to pass to header
+    //                <meta name="next-head-count" content="nn"/>
+    if (preg_match('#\<meta name\="next\-head\-count" content\="\d+"/\>#',$page,$m1))
+    {
+        $smarty->assign('trace_meta', $m1[0]);
+    }
 
+}
 // display templates
 tpl_display('trace.tpl');
 

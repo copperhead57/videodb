@@ -316,24 +316,26 @@ function load_config($force_reload = false)
  * @param string $title   The pages headline
  * @param string $body    An additional message
  */
-function errorpage($title = 'An error occured', $body = '', $stacktrace = false)
+function errorpage($title = 'An error occurred', $body = '', $stacktrace = false)
 {
-    global $lang,  $save_data_if_error_getting_image, $config;
+    global $lang,  $savedata_for_errorpage, $config;
     
     if ( $config['debug'] )
     {    
-        // this captures the message from img.php if guzzle signals error exception,
-        // as img.php is called from browser which has already displayed data this message 
-        // is lost. writing to debug log file
-        // this is a cause of broken actor images appearing
-        if ($save_data_if_error_getting_image)
+        // this contains the message from img.php and google.php
+        // when guzzle signals error exception initiated from browser which has already displayed data
+        // the message is lost. 
+        // writing to debug log file
+        if ($savedata_for_errorpage)
         {
-            $line = strtok($body, "\n");
+            $line = strtok($body, "\n");  //get first line of exception
             $current_time = date("Y-m-d")." T".date("H-i-s");
-            $var = $current_time." - ".$save_data_if_error_getting_image." - ".$line;
-            dlog($var);
-        //    file_put_contents($file_path, $current_time." - ".$save_data_if_error_getting_image." - ".$line."\n", FILE_APPEND);
-            unset($save_data_if_error_getting_image);
+            dlog(" ");
+            dlog("***");
+            dlog($current_time." - ".$title);
+            dlog($current_time." - ".$savedata_for_errorpage." - ".$line);
+            dlog("***");
+            unset($savedata_for_errorpage);
         }
     }
     

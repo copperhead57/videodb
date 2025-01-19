@@ -226,7 +226,7 @@ Event.observe(document, 'dom:loaded', function() {
 
         <tr>
           <td><h4>{$lang.plot}:</h4></td>
-          <td><textarea cols="40" rows="8" name="plot" id="plot" wrap="virtual">{if !empty($video.q_plot)}{$video.$video.q_plot}{/if}</textarea></td>
+          <td><textarea cols="40" rows="8" name="plot" id="plot" wrap="virtual">{if !empty($video.q_plot)}{$video.q_plot}{/if}</textarea></td>
         </tr>
 
         <tr>
