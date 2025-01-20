@@ -392,19 +392,19 @@ function request($urlonly=false)
     $response = httpClient($url, $dbreload != 'Y', array('post' => $post));
 
 	// url after redirect
-	get_base($response['url']);
+    get_base($response['url']);
 
-	if ($response['success'] != true)
+    if ($response['success'] != true)
     {
-		$page = 'Error: '.$response['error'];
-		if ($response['header']) $page .= '<br/>Header:<br/>'.nl2br($response['header']);
-	}
+        $page = 'Error: '.$response['error'];
+        if ($response['header']) $page .= '<br/>Header:<br/>'.nl2br($response['header']);
+    }
     else
     {
-		if (isset($cache) && !$cache) putHTTPcache($url.$post, $response);
-		$page = $response['data'];
-	}
-	return $page;
+        putHTTPcache($url.$post, $response);
+        $page = $response['data'];
+    }
+    return $page;
 }
 
 /**
@@ -1017,7 +1017,7 @@ function replace_javascript_srchlist ($js_file_data, $html)
 }
 
 /**
- *  @param   string  $js_file_data  imdb supplied javascript
+ * @param   string  $js_file_data  imdb supplied javascript
  * @param   string  $html          html data        
  * @return  string  $js_file_data   amended javascript and html.
  * @return  string  $html            amended  html.
@@ -1029,17 +1029,59 @@ function replace_javascript_episodelist ($js_file_data, $html)
     // allow for iframe templates
     $iframe_val = '';
     if ($iframe) $iframe_val = "&iframe=".$iframe;
-    
-    // find_string  `/title/ 
-    $pattern = '#(`)(/title/)#';
+
+    // nav lnks
+    // selection of seasons and year tabs
+    // selection of season no or year date
+        //defaultMessage:"Seasons"}),href:s({tconst:t
+        //defaultMessage:"Years"}),href:s({tconst:t
+        //defaultMessage:"Unknown"}):e.value;return{id: e.value,href:s({tconst:t
+    // selection of top rated tab
+        // defaultMessage:"Top-rated"}),href:s({tconst:t
+    // lnk for top rated at top of listing
+        //plotText?(0,n.jsx)(H,{href:o
+    // lnk for each episode
+        //"data-testid":"slate-list-card-title",children:n?(0,i.jsx)(x,{href:n
+    $pattern = '#(defaultMessage:"Seasons"\}\).*?,href:|'
+               . 'defaultMessage:"Years"\}\).*?,href:|'
+               . 'defaultMessage:"Unknown"\}\).*?,href:|'
+               . 'defaultMessage:"Top-rated"\}\).*?,href:|'
+               . 'plotText.\(.,.....\)\(.,\{href:|'
+               . '"data-testid":"slate-list-card-title".*?href:)#';
     unset($matches);
     if (preg_match($pattern, $js_file_data, $matches))
     {
-        $js_file_data = preg_replace_callback($pattern, function ($matches) use ($iframe_val) {
-             return $matches[1].$_SERVER['PHP_SELF'].'?'.$iframe_val.'&videodburl=https://www.imdb.com'.$matches[2];
-        }, $js_file_data);
+        $js_file_data = preg_replace_callback($pattern, 
+                                              function ($matches) use ($iframe_val) 
+                                                {return $matches[0]."'?$iframe_val&videodburl=https://www.imdb.com'+";
+                                                }, $js_file_data);
     }
 
+    // selection of individual season / years
+        //"data-testid":r.SeasonEntry}}),onChange:(e,a,n)=>{(0,H.h)(s({tconst:t,
+        //"data-testid":r.YearEntry}}),display:"chip",value:e.section?.currentYear,onChange:(e,a,n)=>{(0,H.h)(s({tconst:t,
+        //"data-testid":r.SeasonsTab})}return(0,l.jsxs)(G,{children:[(0,l.jsx)(z,{tabs: p.reverse(),value:n,disableUppercase:!0,onChange:(e,t,a)=>{lets=p.find(t=>t.id===e);s&&(0,H.h)(s.href,
+    // lnks - cervons at bottom episode list
+        //r.NextSeason,children:n[l+1],postIcon:"chevron-right",onClick:()=>a.push(
+        //r.PreviousSeason,children:n[l-1],preIcon:"chevron-left",onClick:()=>a.push(
+        //r.NextYear,children:n[l+1],postIcon:"chevron-right",onClick:()=>a.push(
+        //r.PreviousYear,children:n[l-1],preIcon:"chevron-left",onClick:()=>a.push(
+    $pattern = '#("data-testid":..SeasonEntry\}\}\).*?onChange:.*?\)\(|'
+               . '"data-testid":..YearEntry\}\}\).*?onChange:.*?\)\(|'
+               . '"data-testid":..SeasonsTab\}\).*?onChange:.*?\)\(|'
+                . '..NextSeason,children:.*?"chevron-right",onClick:\(\).*?\(|'
+               . '..PreviousSeason,children:.*?"chevron-left",onClick:\(\).*?\(|'
+               . '..NextYear,children:.*?"chevron-right",onClick:\(\).*?\(|'
+               . '..PreviousYear,children:.*?"chevron-left",onClick:\(\).*?\()#';
+    unset($matches);
+    if (preg_match($pattern, $js_file_data, $matches))
+    {
+        $js_file_data = preg_replace_callback($pattern, 
+                                              function ($matches) use ($iframe_val) 
+                                                {return $matches[0]."'".$_SERVER['PHP_SELF']."?$iframe_val&videodburl=https://www.imdb.com'+";
+                                                }, $js_file_data);
+    }
+    
     // add - add and show to each episode
     // find the json data in html containing title id each episode
     unset($matches);
