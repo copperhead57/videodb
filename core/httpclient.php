@@ -168,9 +168,16 @@ function httpClient($url, $cache = false, $para = null, $reload = false)
     $response['header'] = $resp->getHeaders();
     $response['data'] = (string) $resp->getBody();
 
+/*
+ * ***********
+ * DO NOT PUT THIS IS PRODUCTION ***********************
+ * ***********
+ * temporalily commented out to stop header already sent error.
+ * see issues 177 and 181 in aqndig
     if ($config['debug']) echoHeaders($response['header'])."<p>";
     if ($config['debug']) echo "data:<br>".htmlspecialchars($response['data'])."<p>";
-
+*/
+    
     
     // log response
     if ($config['httpclientlog'])
