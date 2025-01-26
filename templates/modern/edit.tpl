@@ -126,9 +126,9 @@
             <td>{$lang.rating}:</td>
             <td> 
                 {if !empty($video.rating)}
-                    {rating_input value=$video.rating}
+                    {custom_rating_input value=$video.rating}
                 {else}
-                    {rating_input value=null}
+                    {custom_rating_input value=null}
                 {/if}
             </td>
           </tr>
@@ -234,7 +234,7 @@
         <tr>
             <td>{$lang.owner}</td>
             <td>
-                {html_options name=owner_id options=$owners selected=$video.owner_id}
+                {custom_html_options name=owner_id options=$owners selected=$video.owner_id}
             </td>
         </tr>
         {/if}
@@ -248,7 +248,7 @@
         document.edi.title.focus();
     </script>
 
-  {$lang.radio_look_caption}: {html_radios name=lookup options=$lookup checked="$lookup_id"}
+  {$lang.radio_look_caption}: {custom_html_radios name=lookup options=$lookup checked="$lookup_id"}
   <label for="add_flag"><input type="checkbox" name="add_flag" id="add_flag" value="1" {if !empty($add_flag)}checked="checked"{/if} />{$lang.add_another}</label>
   <div align="center"><input type="submit" value="{$lang.save}" class="button" accesskey="s" /></div>
 </form>
