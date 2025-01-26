@@ -46,20 +46,20 @@
                             </div>
     *}
 
-    {if $listcolumns < 4}
-                    <div class="list_item_more">
-                        {if $video.editable}
-                        <div class="list_item_buttons">
-                            <form action="edit.php" method="get">
-                                <input type="hidden" name="id" value="{$video.id}"/>
-                                <input type="submit" class="button" value="{$lang.edit}" />
-                            </form>
-                            <form action="delete.php" method="get">
-                                <input type="hidden" name="id" value="{$video.id}"/>
-                                <input type="submit" class="button" value="{$lang.delete}" onclick="return(confirm('{$video.title|escape:javascript|escape}: {$lang.really_del|escape:javascript|escape}?'))" />
-                            </form>
-                        </div>
-                        {/if}
+{if $listcolumns < 6}
+                <div class="list_item_more">
+                    {if $video.editable}
+                    <div class="list_item_buttons">
+                        <form action="edit.php" method="get">
+                            <input type="hidden" name="id" value="{$video.id}"/>
+                            <input type="submit" class="button" value="{$lang.edit}" />
+                        </form>
+                        <form action="delete.php" method="get">
+                            <input type="hidden" name="id" value="{$video.id}"/>
+                            <input type="submit" class="button" value="{$lang.delete}" onclick="return(confirm('{$video.title|escape:javascript|escape}: {$lang.really_del|escape:javascript|escape}?'))" />
+                        </form>
+                    </div>
+                    {/if}
 
                         <div class="list_diskid">
                             <a href="search.php?q={$video.diskid}&fields=diskid&nowild=1">{$video.diskid}</a>
