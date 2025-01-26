@@ -69,7 +69,7 @@
             {else}
                 {$istv_val = null}
             {/if}
-            {html_checkbox name="istv" value=1 checked=$istv_val}
+            {custom_html_checkbox name="istv" value=1 checked=$istv_val}
           </td>
         </tr>
          
@@ -83,7 +83,7 @@
             {else}
                 {$seen_val = null}
             {/if}
-            {html_checkbox name="seen" value=1 checked=$seen_val}
+            {custom_html_checkbox name="seen" value=1 checked=$seen_val}
           </td>
         </tr>
 
@@ -146,9 +146,9 @@
             <td>{$lang.rating}:</td>
             <td> 
                 {if !empty($video.rating)}
-                    {rating_input value = $video.rating}
+                    {custom_rating_input value = $video.rating}
                 {else}
-                    {rating_input value = null}
+                    {custom_rating_input value = null}
                 {/if}
             </td>
           </tr>
@@ -287,7 +287,7 @@
             {$lang.owner}
           </td>
           <td>
-            {html_options name=owner_id options=$owners selected=$video.owner_id}
+            {custom_html_options name=owner_id options=$owners selected=$video.owner_id}
           </td>
         </tr>
         {/if}
@@ -297,8 +297,8 @@
     </tr>
   </table>
 
-  <b>{$lang.radio_look_caption}:</b> {html_radios name=lookup options=$lookup checked="$lookup_id"}
-  {if !empty($add_flag)}{html_checkbox name="add_flag" value=1 checked=$add_flag label=$lang.add_another}{/if}
+  <b>{$lang.radio_look_caption}:</b> {custom_html_radios name=lookup options=$lookup checked="$lookup_id"}
+  {if !empty($add_flag)}{custom_html_checkbox name="add_flag" value=1 checked=$add_flag label=$lang.add_another}{/if}
   <div align="center"><input type="submit" value="{$lang.save}" accesskey="s" /></div>
   <br />
 </form>

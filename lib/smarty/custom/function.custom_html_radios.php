@@ -8,18 +8,18 @@
  */
 
 /**
-* Smarty {html_radios} function plugin
+* Smarty {custom_html_radios} function plugin
 *
-* File:       function.html_radios.php<br>
+* File:       function.custom_html_radios.php<br>
 * Type:       function<br>
-* Name:       html_radios<br>
+* Name:       custom_html_radios<br>
 * Date:       24.Feb.2003<br>
 * Purpose:    Prints out a list of radio input types<br>
 * Examples:
 * <pre>
-* {html_radios values=$ids output=$names}
-* {html_radios values=$ids name='box' separator='<br>' output=$names}
-* {html_radios values=$ids checked=$checked separator='<br>' output=$names}
+* {custom_html_radios values=$ids output=$names}
+* {custom_html_radios values=$ids name='box' separator='<br>' output=$names}
+* {custom_html_radios values=$ids checked=$checked separator='<br>' output=$names}
 * </pre>
 * 
 * @link http://smarty.php.net/manual/en/language.function.html.radios.php {html_radios}
@@ -41,9 +41,9 @@
 * @return string
 * @uses smarty_function_escape_special_chars()
 */
-function smarty_function_html_radios($params, $template)
+function smarty_function_custom_html_radios($params, $template)
 {
-    require_once(SMARTY_PLUGINS_DIR . 'shared.escape_special_chars.php');
+//    require_once(SMARTY_PLUGINS_DIR . 'shared.escape_special_chars.php');
    
     $name = 'radio';
     $values = null;
