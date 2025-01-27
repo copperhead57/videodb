@@ -77,11 +77,24 @@ $smarty->setCacheDir('./cache/smarty');           // path to compiled templates
 // set the cache_lifetime to 5 minutes
 $smarty->setCacheLifetime(5 * 60);
 
-$smarty->addPluginsDir('./lib/smarty/custom');
+// register customised smarty funtctions
+require_once './lib/smarty/custom/function.custom_html_checkbox.php';
+require_once './lib/smarty/custom/function.custom_html_image.php';
+require_once './lib/smarty/custom/function.custom_html_radios.php';
+require_once './lib/smarty/custom/function.custom_html_rating.php';
+require_once './lib/smarty/custom/function.custom_rating_input.php';
+$smarty->registerPlugin("function","custom_html_checkbox","smarty_function_custom_html_checkbox");
+$smarty->registerPlugin("function","custom_html_image","smarty_function_custom_html_image");
+$smarty->registerPlugin("function","custom_html_radios","smarty_function_custom_html_radios");
+$smarty->registerPlugin("function","custom_rating_input","smarty_function_custom_rating_input");
+$smarty->registerPlugin("function","custom_html_rating","smarty_function_custom_html_rating");
+
+// register php functions used in templates
 $smarty->registerPlugin("modifier", "floor", "floor");
 $smarty->registerPlugin("modifier", "max", "max");
 $smarty->registerPlugin("modifier", "min", "min");
 $smarty->registerPlugin("modifier", "preg_split", "preg_split");
+
 if ($config['debug'])
 {
     $smarty->error_reporting = E_ALL & ~E_NOTICE;           // added for Smarty 3
@@ -92,6 +105,7 @@ else
 {
     $smarty->error_reporting = E_ERROR;           // added for Smarty 3    
 }
+
 // load config
 load_config();
 
