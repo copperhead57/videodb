@@ -7,19 +7,19 @@
  */
 
 /**
- * Smarty {html_rating} function plugin
+  * Smarty {custom_rating_input} function plugin
  *
- * File:       function.html_rating.php<br>
+ * File:       function.custom_rating_input.php<br>
  * Type:       function<br>
- * Name:       html_rating<br>
- * Purpose:    Prints out a rating as a series of stars<br>
+ * Name:       custom_rating_input<br>
+ * Purpose:    Prints out a rating input control<br>
  * Input:<br>
  *           - name       (optional) - string default "checkbox"
  *           - value      (required) - string
  *           - id         (optional) - checkbox id (name is default)
  * @return string
  */
-function smarty_function_html_rating($params, &$smarty)
+function smarty_function_custom_rating_input($params, &$smarty)
 {
     $name = 'rating';
     $value = null;
@@ -38,7 +38,7 @@ function smarty_function_html_rating($params, &$smarty)
                 if(!is_array($_val)) {
                     $extra .= ' '.$_key.'="'.smarty_function_escape_special_chars($_val).'"';
                 } else {
-                    $smarty->trigger_error("rating: extra attribute '$_key' cannot be an array", E_USER_NOTICE);
+                    $smarty->trigger_error("rating_input: extra attribute '$_key' cannot be an array", E_USER_NOTICE);
                 }
                 break;
         }
@@ -49,22 +49,17 @@ function smarty_function_html_rating($params, &$smarty)
 
     $_output = '';
 
-    $rcv = 0;
-    if (is_numeric($value))
-    {   $rcv = ceil($value); }
-    
-    for ($i=0; $i< $rcv; $i++)
-    {
-        $_output .= '<img src="'.img('goldstar.gif').'" width="20" height="18" />';
-    }
-    for ($i=0; $i< (10 - $rcv); $i++)
-    {
-        $_output .= '<img src="'.img('greystar.gif').'" width="20" height="18" />';
-    }
+    $_output .= '<input type="text" size="10" maxlength="4"'.
+                ' name="'.smarty_function_escape_special_chars($name).'"'.
+                ' id="'.smarty_function_escape_special_chars($id).'"'.
+                ' value="'.smarty_function_escape_special_chars($value).'"';
 
-    $_output .= $extra;
+    $_output .= $extra .' />';
 
-    $_output .= " ($value)";
+    for ($i=1; $i<=10; $i++)
+    {
+        $_output .= " <a href='#' onclick='document.edi.".$name.".value=\"".$i.'.0"\'>'.$i.'</a>';
+    }
 
     return $_output;
 }
