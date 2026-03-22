@@ -245,7 +245,11 @@ function imdbData($imdbID)
         #file_put_contents('./cache/nextdata.json', $matches[2]);  // write json data to file
         $json_data = json_decode($matches[2],true);
         #file_put_contents('./cache/nextdata-decoded.json', print_r($json_data, true));  // write formated json data to file
-    } 
+    }
+    else
+    {
+        $json_data = null;
+    }
 
     // add encoding
     $data['encoding'] = $resp['encoding'];
@@ -391,9 +395,12 @@ function imdbData($imdbID)
     }
 
     // Plot
-    if (array_key_exists('plainText', $json_data["props"]["pageProps"]["aboveTheFoldData"]["plot"]["plotText"]) )
+    if ($json_data <> null)
     {
-        $data['plot'] = stripslashes($json_data["props"]["pageProps"]["aboveTheFoldData"]["plot"]["plotText"]["plainText"]);
+        if (array_key_exists('plainText', $json_data["props"]["pageProps"]["aboveTheFoldData"]["plot"]["plotText"]) )
+        {
+            $data['plot'] = stripslashes($json_data["props"]["pageProps"]["aboveTheFoldData"]["plot"]["plotText"]["plainText"]);
+        }
     }
     
     // Fetch credits

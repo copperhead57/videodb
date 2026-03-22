@@ -398,7 +398,7 @@ function request($urlonly=false)
     {
         $page = 'Error: '.$response['error'];
         if ($response['header']) $page .= '<br/>Header:<br/>'.nl2br($response['header']);
-    }
+                }
     else
     {
         putHTTPcache($url.$post, $response);
