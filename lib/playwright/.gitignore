@@ -1,0 +1,54 @@
+########################################
+# Playwright Portable Environment
+########################################
+
+# Browser binaries (HUGE — never commit)
+**/.local-browsers/
+
+# OS-specific node_modules (Windows, macOS, Linux, Synology)
+**/node_modules/
+
+########################################
+# Portable Node Runtimes
+########################################
+
+# Windows portable Node
+win/node.exe
+win/npm.cmd
+win/npx.cmd
+
+# macOS portable Node
+mac/node
+mac/npm
+mac/npx
+
+# Linux portable Node
+linux/node
+linux/npm
+linux/npx
+
+# Synology-specific node_modules
+synology/node_modules/
+
+########################################
+# ZIP files inside Playwright folders
+########################################
+*.zip
+
+########################################
+# Playwright Artifacts
+########################################
+trace.zip
+*.log
+
+########################################
+# Persistent Browser Profiles
+########################################
+**/chrome-profile/
+**/chrome-profile*/
+
+########################################
+# OS Junk
+########################################
+.DS_Store
+Thumbs.db
