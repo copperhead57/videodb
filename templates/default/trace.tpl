@@ -1,26 +1,1 @@
-{*
-  Template for browsing IMDB through VideoDB
-  $Id: trace.tpl,v 2.10 2005/05/20 10:02:17 andig2 Exp $
-*}
-
-<table width="100%" class="tableborder">
-  <tr>
-    <td>URL: </span><a href="{$url}" target="_blank">{$url}</a></td>
-    <td nowrap="nowrap" align="right" style="text-align:right">{if $fetchtime}{$lang.fetchtime}: {$fetchtime}s{/if}
-    <td align="right" style="text-align:right;">
-      <form action="trace.php" method="get" style="margin:0px; padding:0px;">
-        <input type="hidden" name="videodburl" value="{$url}" />
-        <input type="hidden" name="videodbreload" value="Y" />
-        <input type="submit" value="Reload" />
-      </form>
-    </td>
-  </tr>
-</table>
-
-<br />
-
-<table width="100%" class="tableborder">
-<tr><td style="background-color:#ffffff">
-{$page}
-</td></tr>
-</table>
+{*  Template for browsing IMDB through VideoDB  $Id: trace.tpl,v 2.10 2005/05/20 10:02:17 andig2 Exp $*}<!-- URL + Reload --><table width="100%" class="tableborder" style="height:50px;">    <tr>      <td>URL: <a href="{$url}" target="_blank">{$url}</a></td>      <td nowrap="nowrap" align="right" style="text-align:right">        {if $fetchtime}{$lang.fetchtime}: {$fetchtime}s{/if}      </td>      <td align="right" style="text-align:right;">        <form action="trace.php" method="get" style="margin:0px; padding:0px;">          <input type="hidden" name="videodburl" value="{$url}" />          <input type="hidden" name="videodbreload" value="1" />          <input type="submit" value="Reload" />        </form>      </td>    </tr>  </table><br /><!-- IFRAME WRAPPER (scrolls internally) --><!-- IFRAME (ONLY the iframe scrolls) --><div style="    width:100%;    height:70vh;    overflow:hidden;   /* ← IMPORTANT: wrapper does NOT scroll */    padding:0;    margin:0;">    <iframe        id="inlineFrameIMDB"        src="trace.php?iframe=2&videodburl={$url}"        style="            width:100%;            height:100%;            border:none;            overflow:auto;   /* ← iframe scrolls internally */        ">    </iframe></div><br><!-- URL Sync Script --><script>document.addEventListener("DOMContentLoaded", function () {    const iframe = document.getElementById("inlineFrameIMDB");    // Buttons/fields to update    const openBtn = document.querySelector("a[target='_blank']");    const reloadForm = document.querySelector("form[action='trace.php']");    const reloadInput = reloadForm.querySelector("input[name='videodburl']");    function updateButtons() {        try {            const fullUrl = iframe.contentWindow.location.href;            // Extract ONLY the IMDb URL after videodburl=            const match = fullUrl.match(/videodburl=([^&]+)/);            if (!match) return;            const imdbUrl = decodeURIComponent(match[1]);            // Update Open in Browser button            openBtn.href = imdbUrl;            openBtn.textContent = imdbUrl;            // Update Reload form hidden field            reloadInput.value = imdbUrl;        } catch (e) {            // Cross-origin navigation blocks access until fully loaded        }    }    iframe.addEventListener("load", updateButtons);});</script>

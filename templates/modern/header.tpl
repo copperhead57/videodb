@@ -14,7 +14,7 @@
 
 	{if !empty($header.browse)}<span class="{if $header.active == 'browse'}tabActive{else}tabInactive{/if}"><a href="{$header.browse}{if !empty($browseid)}#{$browseid}{/if}" accesskey="i">{$lang.browse}</a></span>{/if}
 
-	{if !empty($header.trace)}<span class="{if $header.active == 'trace'}tabActive{else}tabInactive{/if}"><a href="{$header.trace}">{$lang.imdbbrowser}</a></span>{/if}
+	{if !empty($header.trace)}<span class="{if $header.active == 'trace'}tabActive{else}tabInactive{/if}"><a href="{$header.trace}?iframe=1">{$lang.imdbbrowser}</a></span>{/if}
 
 	{if !empty($header.random)}<span class="{if $header.active == 'random'}tabActive{else}tabInactive{/if}"><a href="{$header.random}">{$lang.random}</a></span>{/if}
 

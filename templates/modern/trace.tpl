@@ -15,11 +15,72 @@
     <td align="right">
         <form action="trace.php" method="get">
             <input type="hidden" name="videodburl" value="{$url}"/>
-            <input type="hidden" name="videodbreload" value="Y"/>
+            <input type="hidden" name="videodbreload" value="1"/>
             <input type="submit" value="Reload" class="button"/>
         </form>
     </td></tr>
     </table>
 </td></tr>
 </table>
+            {*
 {$page}
+*}
+
+<!-- IFRAME WRAPPER (scrolls internally) -->
+<!-- IFRAME (ONLY the iframe scrolls) -->
+<div style="
+    width:100%;
+    height:70vh;
+    overflow:hidden;   /* ← IMPORTANT: wrapper does NOT scroll */
+    padding:0;
+    margin:0;
+">
+    <iframe
+        id="inlineFrameIMDB"
+        src="trace.php?iframe=2&videodburl={$url}"
+        style="
+            width:100%;
+            height:100%;
+            border:none;
+            overflow:auto;   /* ← iframe scrolls internally */
+        ">
+    </iframe>
+</div>
+
+<br>
+
+<!-- URL Sync Script -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const iframe = document.getElementById("inlineFrameIMDB");
+
+    // Buttons/fields to update
+    const openBtn = document.querySelector("a[target='_blank']");
+    const reloadForm = document.querySelector("form[action='trace.php']");
+    const reloadInput = reloadForm.querySelector("input[name='videodburl']");
+
+    function updateButtons() {
+        try {
+            const fullUrl = iframe.contentWindow.location.href;
+
+            // Extract ONLY the IMDb URL after videodburl=
+            const match = fullUrl.match(/videodburl=([^&]+)/);
+            if (!match) return;
+
+            const imdbUrl = decodeURIComponent(match[1]);
+
+            // Update Open in Browser button
+            openBtn.href = imdbUrl;
+            openBtn.textContent = imdbUrl;
+
+            // Update Reload form hidden field
+            reloadInput.value = imdbUrl;
+
+        } catch (e) {
+            // Cross-origin navigation blocks access until fully loaded
+        }
+    }
+
+    iframe.addEventListener("load", updateButtons);
+});
+</script>
