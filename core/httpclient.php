@@ -341,20 +341,8 @@ function runPlaywright(string $url): array
             break;
 
         case 'synology':
-
-            /*
-             * --- PRODUCTION SYNLOGY CODE (LOCAL DOCKER RUNNER) ---
-             * Uncomment if you want the PHP client to run Playwright directly on the NAS.
-             *
-             * $script = escapeshellarg("$path/synology/imdb-fetch.js");
-             * $cmd = "node $script " . escapeshellarg($url);
-             */
-
-            // --- ACTIVE CODE: Use Synology HTTP API ---
-            $cmd = sprintf(
-                'curl -s "http://192.168.0.195/playwright-api.php?url=%s"',
-                rawurlencode($url)
-            );
+             $script = escapeshellarg("$path/synology/imdb-fetch.js");
+             $cmd = "node $script " . escapeshellarg($url);
             break;
 
         default:
