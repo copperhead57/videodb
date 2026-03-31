@@ -181,6 +181,7 @@ function httpClient($url, $cache = false, $para = null, $reload = false)
     }
 
     $status = $resp->getStatusCode();
+    #dlog($current_time." - Guzzle: url:".$url." Status:".$status);
 
     switch ($status) 
     {
