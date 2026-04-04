@@ -286,7 +286,6 @@ function detectEnvironment(): string
 {
     // Windows
     if (stripos(PHP_OS_FAMILY, 'Windows') !== false) {
-        // return 'synology';  // for testing synology from windows client 
         return 'windows';
     }
 
@@ -295,13 +294,28 @@ function detectEnvironment(): string
         return 'mac';
     }
 
-    // Linux (could be native or Synology)
+    // Linux
     if (PHP_OS_FAMILY === 'Linux') {
 
-        // Detect Synology by presence of /etc.defaults/VERSION
-        if (file_exists('/etc.defaults/VERSION')) {
-            return 'synology';
+        // Detect architecture
+        $arch = php_uname('m');
+        $isArm = stripos($arch, 'aarch64') !== false || stripos($arch, 'arm') !== false;
+        $isIntel = stripos($arch, 'x86_64') !== false;
+
+        // Detect NAS-like environment (Synology, QNAP, etc.)
+        $isNas = file_exists('/etc.defaults/VERSION')       // Synology
+              || file_exists('/etc/config/uLinux.conf')    // QNAP
+              || file_exists('/etc/truenas-version');      // TrueNAS SCALE
+
+        if ($isNas) {
+            if ($isArm) return 'linux-nas-arm64';
+            if ($isIntel) return 'linux-nas-intel';
+            return 'linux-nas-unknown';
         }
+
+        // Native Linux
+        //if ($isArm) return 'linux-arm64';
+        //if ($isIntel) return 'linux-intel';
 
         return 'linux';
     }
@@ -312,6 +326,9 @@ function detectEnvironment(): string
 function runPlaywright(string $url): array
 {
     $env  = detectEnvironment();
+    
+    #dlog("detectedvironment:".$env);
+    
     $root = realpath(__DIR__ . '/..');
     $path = $root . '/lib/playwright';
 
@@ -341,11 +358,17 @@ function runPlaywright(string $url): array
             $cmd = "node $script " . escapeshellarg($url);
             break;
 
-        case 'synology':
-             $script = escapeshellarg("$path/synology/imdb-fetch.js");
-             $cmd = "node $script " . escapeshellarg($url);
+        case 'linux-nas-arm64':
+            $script = escapeshellarg("$path/linux-nas-arm64/imdb-fetch.js");
+            $cmd = "node $script " . escapeshellarg($url);
             break;
-
+        
+        case 'linux-nas-intel':
+            // this is untested but believe will work
+            $script = escapeshellarg("$path/linux-nas-arm64/imdb-fetch.js");
+            $cmd = "node $script " . escapeshellarg($url);
+            break;
+        
         default:
             return [
                 'ok'    => false,
