@@ -1,26 +1,1 @@
-{*
-  Template for browsing IMDB through VideoDB
-  $Id: trace.tpl,v 2.10 2005/05/20 10:02:17 andig2 Exp $
-*}
-
-<table width="100%" class="tableborder">
-  <tr>
-    <td>URL: </span><a href="{$url}" target="_blank">{$url}</a></td>
-    <td nowrap="nowrap" align="right" style="text-align:right">{if $fetchtime}{$lang.fetchtime}: {$fetchtime}s{/if}
-    <td align="right" style="text-align:right;">
-      <form action="trace.php" method="get" style="margin:0px; padding:0px;">
-        <input type="hidden" name="videodburl" value="{$url}" />
-        <input type="hidden" name="videodbreload" value="Y" />
-        <input type="submit" value="Reload" />
-      </form>
-    </td>
-  </tr>
-</table>
-
-<br />
-
-<table width="100%" class="tableborder">
-<tr><td style="background-color:#ffffff">
-{$page}
-</td></tr>
-</table>
+{*  Template for browsing IMDB through VideoDB - default  $Id: trace.tpl,v 2.10 2005/05/20 10:02:17 andig2 Exp $*}<!-- {$smarty.template} --><!-- Shared CSS --><link rel="stylesheet" href="templates/trace.css"><!-- Template-specific CSS --><link rel="stylesheet" href="./templates/default/trace.css.inc"  type="text/css" /><!-- URL + Reload --><table width="100%" class="tableborder" style="height:50px;">  <tr>    <td>URL: <a href="{$url}" target="_blank">{$url}</a></td>    <td nowrap="nowrap" align="right" style="text-align:right">        {if !empty($fetchtime)}{$lang.fetchtime}: {$fetchtime}s{/if}    </td>    <td align="right" style="text-align:right;">      <form action="trace.php" method="get" style="margin:0px; padding:0px;">        <input type="hidden" name="videodburl" value="{$url}" />        <input type="hidden" name="videodbreload" value="1" />        <input type="submit" value="Reload" />      </form>    </td>  </tr></table><br /><!-- IFRAME WRAPPER --><div class="fullframe">    <!-- Spinner overlay -->    <div id="iframeSpinner">Getting Requested Page…</div>    <iframe        id="inlineFrameIMDB"        src="trace.php?iframe=2&videodburl={$url}">    </iframe></div><br><!-- URL Sync Script --><script>    document.addEventListener("DOMContentLoaded", function () {        const iframe = document.getElementById("inlineFrameIMDB");        const openBtn = document.querySelector("a[target='_blank']");        const reloadForm = document.querySelector("form[action='trace.php']");        const reloadInput = reloadForm.querySelector("input[name='videodburl']");        function updateButtons() {            try {                const fullUrl = iframe.contentWindow.location.href;                const match = fullUrl.match(/videodburl=([^&]+)/);                if (!match) return;                const imdbUrl = decodeURIComponent(match[1]);                openBtn.href = imdbUrl;                openBtn.textContent = imdbUrl;                reloadInput.value = imdbUrl;            } catch (e) {                // Cross-origin IMDb → ignore            }        }        iframe.addEventListener("load", updateButtons);    });</script><!-- Shared spinner/navigation logic --><script src="./javascript/trace.js"></script>

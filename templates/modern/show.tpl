@@ -48,7 +48,7 @@
   <tr>
     <td class="center" rowspan="2" width="200">
     {if $link}
-    {if $config.imdbBrowser}{assign var="link" value=$link|escape:url}{assign var="link" value="trace.php?videodburl=$link"}{/if}
+    {if $config.imdbBrowser}{assign var="link" value=$link|escape:url}{assign var="link" value="trace.php?iframe=1&amp;videodburl=$link"}{/if}
     {/if}
 {*  <a href="{$link}" title="{$lang.visit}">
     <img src="{$video.imgurl}" width="97" height="144" alt="" />{if $video.imdbID}</a>{/if} *}
@@ -254,7 +254,7 @@
                 <td width="{math equation="floor(100/x)" x=$config.castcolumns}%">
                   {if $actor.imgurl}
                     {assign var="link" value=$actor.imdburl}
-                    <a href="{if $config.imdbBrowser}{assign var="link" value=$link|escape:url}trace.php?videodburl={/if}{$link}">{html_image file=$actor.imgurl max_width=45 max_height=60 class=thumb}{*<img src="{$actor.imgurl}" width="38" height="52" align="left">*}</a>
+                    <a href="{if $config.imdbBrowser}{assign var="link" value=$link|escape:url}trace.php?iframe=1&amp;videodburl={/if}{$link}">{html_image file=$actor.imgurl max_width=45 max_height=60 class=thumb}{*<img src="{$actor.imgurl}" width="38" height="52" align="left">*}</a>
                   {/if}
                   <a href="search.php?q=%22{$actor.name|escape:url}%22&isname=Y">{$actor.name}</a><br/>
                     {foreach item=role from=$actor.roles}

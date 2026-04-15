@@ -9,7 +9,7 @@
   <tr>
     <td align="center" rowspan="2" width="200" style="text-align:center">
       {if $link}
-      {if $config.imdbBrowser}{assign var="link" value=$link|escape:url}{assign var="link" value="trace.php?videodburl=$link"}{/if}
+      {if $config.imdbBrowser}{assign var="link" value=$link|escape:url}{assign var="link" value="trace.php?iframe=1&amp;videodburl=$link"}{/if}
       {/if}
       {html_image file=$video.imgurl link=$link title=$lang.visit max_width="97" max_height="144"}
     </td>
