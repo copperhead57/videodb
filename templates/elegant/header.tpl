@@ -30,7 +30,7 @@
 <div id="header">
     <ul id="headernav">
         {if !empty($header.browse)}<li class="{if $header.active == 'browse'}tabActive{else}tabInactive{/if}"><a href="{$header.browse}{if !empty($browseid)}#{$browseid}{/if}" accesskey="i">{$lang.browse}</a></li>{/if}
-        {if !empty($header.trace)}<li class="{if $header.active == 'trace'}tabActive{else}tabInactive{/if}"><a href="{$header.trace}">{$lang.imdbbrowser}</a></li>{/if}
+        {if !empty($header.trace)}<li class="{if $header.active == 'trace'}tabActive{else}tabInactive{/if}"><a href="{$header.trace}?iframe=1">{$lang.imdbbrowser}</a></li>{/if}
         {if !empty($header.random)}<li class="{if $header.active == 'random'}tabActive{else}tabInactive{/if}"><a href="{$header.random}">{$lang.random}</a></li>{/if}
         {if !empty($header.search)}<li class="{if $header.active == 'search'}tabActive{else}tabInactive{/if}"><a href="{$header.search}">{$lang.search}</a></li>{/if}
         {if !empty($header.new)}<li class="{if $header.active == 'new'}tabActive{else}tabInactive{/if}"><a href="{$header.new}" accesskey="n">{$lang.n_e_w}</a></li>{/if}

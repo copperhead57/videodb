@@ -95,7 +95,7 @@ Event.observe(document, 'dom:loaded', function() {
 <tr>
     <td rowspan="2">
         {if $link}
-        {if $config.imdbBrowser}{assign var="link" value=$link|escape:url}{assign var="link" value="trace.php?videodburl=$link"}{/if}
+        {if $config.imdbBrowser}{assign var="link" value=$link|escape:url}{assign var="link" value="trace.php?iframe=1&amp;videodburl=$link"}{/if}
         {/if}
         {if $video.imgurl}
         <span class="img-shadow">{html_image file=$video.imgurl link=$link title=$lang.visit max_width="97" max_height="144" id="coverimg" class="canzoom" targetimg=$video.imgurl}</span>
@@ -308,7 +308,7 @@ Event.observe(document, 'dom:loaded', function() {
                 <td width="{floor(100/$config.castcolumns)}%">
                     {if $actor.imgurl}
                         {assign var="link" value=$actor.imdburl}
-                        <a href="{if $config.imdbBrowser}{assign var="link" value=$link|escape:url}trace.php?videodburl={/if}{$link}">{html_image file=$actor.imgurl max_width=45 max_height=60 class="thumb canzoom" targetimg=$actor.imgurl}{*<img src="{$actor.imgurl}" width="38" height="52" align="left">*}</a>
+                        <a href="{if $config.imdbBrowser}{assign var="link" value=$link|escape:url}trace.php?iframe=1&amp;videodburl={/if}{$link}">{html_image file=$actor.imgurl max_width=45 max_height=60 class="thumb canzoom" targetimg=$actor.imgurl}{*<img src="{$actor.imgurl}" width="38" height="52" align="left">*}</a>
                     {/if}
                     <a href="search.php?q=%22{$actor.name|escape:url}%22&amp;isname=Y">{$actor.name}</a>
                     {foreach $actor.roles as $role}

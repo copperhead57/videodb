@@ -168,8 +168,9 @@ function httpClient($url, $cache = false, $para = null, $reload = false)
     $response['header'] = $resp->getHeaders();
     $response['data'] = (string) $resp->getBody();
 
-    if ($config['debug']) echoHeaders($response['header'])."<p>";
-    if ($config['debug']) echo "data:<br>".htmlspecialchars($response['data'])."<p>";
+    //* Commented out as to stop header already sent error
+    //if ($config['debug']) echoHeaders($response['header'])."<p>";
+    //if ($config['debug']) echo "data:<br>".htmlspecialchars($response['data'])."<p>";
 
     
     // log response
@@ -180,21 +181,63 @@ function httpClient($url, $cache = false, $para = null, $reload = false)
         fclose($log);
     }
 
-    // verify status code
-    if ($resp->getStatusCode() != 200)
+    $status = $resp->getStatusCode();
+    if ($config['debug'])
     {
-        $response['error'] = 'Server returned wrong status: ' . $resp->getStatusCode();
-        $response['error'] .= " Reason: " . $resp->getReasonPhrase();
-        return $response;
+        dlog(date("Y-m-d")." T".date("H-i-s")." - Guzzle: url:".$url." Status:".$status);
     }
+    
+    // verify status code
+    switch ($status)
+    {
+        case 200:
+            $response['success'] = true;
+            $response['source'] = "guzzle";
+            break;
 
-    $response['success'] = true;
+        case 202:
+            // AWS WAF challenge → Playwright fallback
+            $pw = runPlaywright($url);
+
+            if (!$pw['ok']) {
+                $response = [
+                    'error'   => 'Playwright failed: ' . $pw['error'],
+                    'url'     => $url,
+                    'success' => false,
+                    'source'  => 'playwright-error'
+                ];
+            } else {
+                $response = [
+                    'error'    => '',
+                    'url'      => $url,
+                    'success'  => true,
+                    'encoding' => 'UTF-8',
+                    'header'   => [],
+                    'data'     => $pw['html'],
+                    'wafChallengeDetected' => $pw['wafDetected'],
+                //    'wafSolved' => $pw['wafSolved'],
+                    'source'   => 'playwright'
+                ];
+            }
+            break;
+
+        default:
+            $response = [
+                'error'   => 'Server returned wrong status: ' . $status .
+                             ' Reason: ' . $resp->getReasonPhrase(),
+                'url'     => $url,
+                'success' => false,
+                'source'  => 'guzzle-error'
+            ];
+            break;
+    }
+    
     // @todo i'm not sure on the side-effects of setting the previous requested URL as referer
     //        for the next, so disabled for now. might be something to investigate...
     //$referer = $url;
 
     // commit successful request to cache
-    if ($cache)
+    if ($cache && $response['success'])
     {
         putHTTPcache($url.$post, $response);
     }
@@ -241,6 +284,164 @@ function download($url, $local)
     }
 
     return(@file_put_contents($local, $resp['data']) !== false);
+}
+
+function detectEnvironment(): string
+{
+    // Windows
+    if (stripos(PHP_OS_FAMILY, 'Windows') !== false) 
+    {
+        return 'windows';
+    }
+
+    // macOS
+    if (PHP_OS_FAMILY === 'Darwin') 
+    {
+        return 'mac';
+    }
+
+    // Linux
+    if (PHP_OS_FAMILY === 'Linux') 
+    {
+        // Detect architecture
+        $arch = php_uname('m');
+        $isArm = stripos($arch, 'aarch64') !== false || stripos($arch, 'arm') !== false;
+        $isIntel = stripos($arch, 'x86_64') !== false;
+
+        // Detect NAS-like environment (Synology, QNAP, etc.)
+        $isNas = file_exists('/etc.defaults/VERSION')       // Synology
+              || file_exists('/etc/config/uLinux.conf')    // QNAP
+              || file_exists('/etc/truenas-version');      // TrueNAS SCALE
+
+        if ($isNas) {
+            if ($isArm) return 'linux-nas-arm64';
+            if ($isIntel) return 'linux-nas-intel';
+            return 'linux-nas-unknown';
+        }
+
+        // Native Linux
+        //if ($isArm) return 'linux-arm64';
+        //if ($isIntel) return 'linux-intel';
+
+        return 'linux';
+    }
+
+    return 'unknown';
+}
+
+function runPlaywright(string $url): array
+{
+    global $config;
+    
+    $debug_playwright = 1;
+    
+    $env  = detectEnvironment();
+    
+    if ($config['debug'] || $debug_playwright)
+    {
+        dlog("**************");
+        dlog("runPlaywright:detectedvironment:".$env);
+    }
+    $root = realpath(__DIR__ . '/..');
+    $path = $root . '/lib/playwright';
+
+    switch ($env) 
+    {
+        case 'windows':
+            $node   = escapeshellarg("$path/win/node.exe");
+            $script = escapeshellarg("$path/win/imdb-fetch-win.mjs");
+            $cmd =
+                "cmd /C " .
+                "set \"PLAYWRIGHT_BROWSERS_PATH=$path/win/node_modules/playwright-core/.local-browsers\" && " .
+                "$node $script " . escapeshellarg($url);
+            break;
+        
+        case 'mac':
+        case 'linux':
+            // New root folder for Linux + mac shared environment
+            $PLAYROOT = $path.'/linux-mac';
+            // Wrapper + helper scripts now live inside linux-mac/
+            $nodewrapper = escapeshellarg("$PLAYROOT/xvfb.sh");
+            $nodex       = escapeshellarg("$PLAYROOT/node-clean.sh");
+            // Shared fetcher for Linux + mac
+            $script      = escapeshellarg("$PLAYROOT/imdb-fetch-unix.mjs");
+            $urlArg      = escapeshellarg($url);
+            // Determine desktop user from group owner of xvfb.sh
+            $stat = posix_getgrgid(filegroup("$PLAYROOT/xvfb.sh"));
+            $desktopUser = $stat['name'];
+            // Fallback if group is root or empty
+            if ($desktopUser === 'root' || empty($desktopUser)) {
+                $desktopUser = get_current_user();
+            }
+            // Final command
+            $cmd = '/usr/bin/sudo -n -u ' . escapeshellarg($desktopUser)
+                 . ' ' . $nodewrapper . ' ' . $nodex . ' ' . $script . ' ' . $urlArg;
+            break;
+
+        case 'linux-nas-arm64':
+            $script = escapeshellarg("$path/linux-nas-arm64/imdb-fetch.js");
+            $cmd = "node $script " . escapeshellarg($url);
+            break;
+        
+        case 'linux-nas-intel':
+            // this is untested but believe will work
+            $script = escapeshellarg("$path/linux-nas-arm64/imdb-fetch.js");
+            $cmd = "node $script " . escapeshellarg($url);
+            break;
+        
+        default:
+            return [
+                'ok'    => false,
+                'error' => 'Unsupported environment'
+            ];
+    }
+
+    if ($config['debug'] || $debug_playwright)
+    {
+        dlog("runPlaywright:cmd:" . $cmd);
+    }
+    
+    // Capture stdout + stderr
+    $output = shell_exec($cmd . " 2>&1");
+
+    // debug trace of playwright js scripts and last line is result
+    if ($config['debug'] || $debug_playwright)
+    {
+        dlog("runPlaywright:Start Playwright Output");
+        dlog($output);
+        dlog("runPlaywright:End Playwright Output");
+    }
+    
+    if (!$output) 
+    {
+        return [
+            'ok'    => false,
+            'error' => 'No output from Playwright',
+            'cmd'   => $cmd
+        ];
+    }
+    
+    $lines = explode("\n", $output);
+    // remove *only* empty lines at the end, not in the middle
+    while (count($lines) > 1 && trim(end($lines)) === '') 
+    {
+        array_pop($lines);
+    }
+    $lastLine = trim(end($lines));
+
+    $json = json_decode($lastLine, true);
+
+    if (!is_array($json)) 
+    {
+        return [
+            'ok'    => false,
+            'error' => 'Invalid JSON from Playwright',
+            'raw'   => $output,
+            'cmd'   => $cmd
+        ];
+    }
+
+    return $json;
 }
 
 ?>

@@ -397,7 +397,19 @@ function request($urlonly=false)
     if ($response['success'] != true)
     {
         $page = 'Error: '.$response['error'];
-        if ($response['header']) $page .= '<br/>Header:<br/>'.nl2br($response['header']);
+        if (!empty($response['header']) && is_array($response['header']))
+        {
+            $headerText = '';
+            foreach ($response['header'] as $key => $values) 
+            {
+                $values = (array)$values; // handle single or multiple header values
+                foreach ($values as $v) 
+                {
+                    $headerText .= "$key: $v\n";
+                }
+            }
+            $page .= '<br/>Header:<br/>' . nl2br($headerText);
+        }
     }
     else
     {

@@ -4,8 +4,30 @@
 *}
 {include file="xml.tpl"}
 
-<body>
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
 
+    /* Main container: page scrolls normally */
+    #maincontainer {
+        width: 100%;
+    }
+
+    /* Header bar */
+    table.menutable {
+        width: 100%;
+        height: 50px;
+        border-collapse: collapse;
+    }
+</style>
+
+<body style="height:100%; margin:0; padding:0;">
+
+<div id="maincontainer">
+    
 <a name="top"></a>
 <div align="center">
 
@@ -17,7 +39,7 @@
 	<td width="100%" valign="bottom" align="center" style="text-align:center">
 
 	  {if !empty($header.browse)}[&nbsp;<a href="{$header.browse}" accesskey="i">{$lang.browse}</a>&nbsp;] {/if}
-	  {if !empty($header.trace)}[&nbsp;<a href="{$header.trace}">{$lang.imdbbrowser}</a>&nbsp;] {/if}
+	  {if !empty($header.trace)}[&nbsp;<a href="{$header.trace}?iframe=1">{$lang.imdbbrowser}</a>&nbsp;] {/if}
 	  {if !empty($header.random)}[&nbsp;<a href="{$header.random}">{$lang.random}</a>&nbsp;] {/if}
 	  {if !empty($header.search)}[&nbsp;<a href="{$header.search}" accesskey="f">{$lang.search}</a>&nbsp;] {/if}
 	  {if !empty($header.new)}[&nbsp;<a href="{$header.new}" accesskey="n">{$lang.n_e_w}</a>&nbsp;] {/if}
