@@ -270,22 +270,25 @@ function imdbData($imdbID)
     // Titles and Year
     // See for different formats. https://contribute.imdb.com/updates/guide/title_formats
     if ($data['istv']) {
-        if (preg_match('/<title>&quot;(.+?)&quot;(.+?)\(TV Episode (\d+)\) - IMDb<\/title>/si', $resp['data'], $ary)) {
-            # handles one episode of a TV serie
-            $data['title'] = trim($ary[1]);
+        # TV Episode
+        if (preg_match('/<title>"(.+?)"\s+(.+?)\(TV Episode (\d{4})\) - IMDb<\/title>/si', $resp['data'], $ary)) {
+
+            $data['title']    = trim($ary[1]);
             $data['subtitle'] = trim($ary[2]);
-            $data['year'] = $ary[3];
-        } else if (preg_match('/<title>(.+?)\(TV (?:Series|Mini-Series) (\d+).+?\) - IMDb<\/title>/si', $resp['data'], $ary)) {
-            # handles a TV series.
-            # split title - subtitle
+            $data['year']     = $ary[3];
+
+        }
+        # TV Series / Mini-Series
+        else if (preg_match('/<title>(.+?)\(TV (?:Series|Mini-Series) (\d+).+?\) - IMDb<\/title>/si', $resp['data'], $ary)) {
+
             list($t, $s) = explode(' - ', $ary[1], 2);
             # no dash, lets try colon
             if ($s == false) {
                 list($t, $s) = explode(': ', $ary[1], 2);
             }
-            $data['title'] = trim($t);
+            $data['title']    = trim($t);
             $data['subtitle'] = trim($s);
-            $data['year'] = trim($ary[2]);
+            $data['year']     = trim($ary[2]);
         }
     } else {
         preg_match('/<title>(.+?)\(.*?(\d+)\).+?<\/title>/si', $resp['data'], $ary);
@@ -399,12 +402,10 @@ function imdbData($imdbID)
     }
 
     // Plot
-    if ($json_data <> null)
+    $plotText = $json_data["props"]["pageProps"]["aboveTheFoldData"]["plot"]["plotText"]["plainText"] ?? null;
+    if ($plotText !== null)
     {
-        if (array_key_exists('plainText', $json_data["props"]["pageProps"]["aboveTheFoldData"]["plot"]["plotText"]) )
-        {
-            $data['plot'] = stripslashes($json_data["props"]["pageProps"]["aboveTheFoldData"]["plot"]["plotText"]["plainText"]);
-        }
+        $data['plot'] = stripslashes($plotText);
     }
     
     // Fetch credits
