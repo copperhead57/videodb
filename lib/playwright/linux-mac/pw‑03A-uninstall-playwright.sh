@@ -1,5 +1,5 @@
 #!/bin/sh
-echo "=== Playwright Headful Environment Installer (Linux/macOS) ==="
+echo "=== Playwright Uninstaller (Linux/macOS) ==="
 
 pause() {
     printf "\nPress Enter to continue, or Ctrl+C to cancel..."
@@ -26,100 +26,74 @@ pause
 
 
 # ------------------------------------------------------------
-# STEP 1 — Verify system-wide Node
+# STEP 1 — Remove Playwright package
 # ------------------------------------------------------------
-echo "--- Step 1: Checking Node installation ---"
+echo "--- Step 1: Removing Playwright npm package ---"
 
-node -v >/dev/null 2>&1
-if [ $? -ne 0 ]; then
-    echo "[FAIL] Node is not installed."
-    echo "Please install Node 24+ before running this script."
-    exit 1
-fi
+npm remove playwright playwright-core 2>/dev/null
 
-echo "[OK] Node version: $(node -v)"
-echo "[OK] npm version:  $(npm -v)"
+echo "[OK] Playwright npm package removed."
 pause
 
 
 # ------------------------------------------------------------
-# STEP 2 — Create package.json (if missing)
+# STEP 2 — Remove Playwright browsers
 # ------------------------------------------------------------
-echo "--- Step 2: Ensuring package.json exists ---"
+echo "--- Step 2: Removing Playwright browser binaries ---"
 
-if [ ! -f "./package.json" ]; then
-    echo "package.json not found — creating..."
-    npm init -y
-    echo "[OK] package.json created."
+if [ -d "./$OS_DIR/browsers" ]; then
+    rm -rf "./$OS_DIR/browsers"
+    echo "[OK] Removed ./$OS_DIR/browsers/"
 else
-    echo "[OK] package.json already exists."
+    echo "[INFO] No browsers folder found."
 fi
 
 pause
 
 
 # ------------------------------------------------------------
-# STEP 3 — Install Playwright package
+# STEP 3 — Remove Playwright runtime folders
 # ------------------------------------------------------------
-echo "--- Step 3: Installing Playwright ---"
+echo "--- Step 3: Removing Playwright runtime folders ---"
 
-npm install playwright
-if [ $? -ne 0 ]; then
-    echo "[FAIL] Playwright installation failed."
-    exit 1
-fi
-
-echo "[OK] Playwright installed."
-pause
-
-
-# ------------------------------------------------------------
-# STEP 4 — Install Playwright browsers
-# ------------------------------------------------------------
-echo "--- Step 4: Installing Playwright browsers ---"
-
-PLAYWRIGHT_BROWSERS_PATH="./$OS_DIR/browsers" \
-npx playwright install
-
-if [ $? -ne 0 ]; then
-    echo "[FAIL] Browser installation failed."
-    exit 1
-fi
-
-echo "[OK] Browsers installed into ./$OS_DIR/browsers/"
-pause
-
-
-# ------------------------------------------------------------
-# STEP 5 — Install GUI dependencies (Linux only)
-# ------------------------------------------------------------
-if [ "$OS" = "Linux" ]; then
-    echo "--- Step 5: Installing GUI dependencies (sudo required) ---"
-    sudo npx playwright install-deps
-    if [ $? -ne 0 ]; then
-        echo "[FAIL] GUI dependency installation failed."
-        exit 1
-    fi
-    echo "[OK] GUI dependencies installed."
+if [ -d "./chrome-profile" ]; then
+    rm -rf "./chrome-profile"
+    echo "[OK] Removed chrome-profile/"
 else
-    echo "--- Step 5: Skipped (macOS does not require install-deps) ---"
+    echo "[INFO] chrome-profile/ not found."
+fi
+
+if [ -d "./chrome-home" ]; then
+    rm -rf "./chrome-home"
+    echo "[OK] Removed chrome-home/"
+else
+    echo "[INFO] chrome-home/ not found."
 fi
 
 pause
 
 
 # ------------------------------------------------------------
-# STEP 6 — Final verification
+# STEP 4 — Optional cleanup
 # ------------------------------------------------------------
-echo "--- Step 6: Running verification script ---"
+echo "--- Step 4: Optional cleanup ---"
 
-if [ -f "./pw-01-verify.sh" ]; then
-    ./pw-01-verify.sh
+echo "Removing node_modules and package-lock.json? (y/n)"
+read answer
+
+if [ "$answer" = "y" ]; then
+    rm -rf node_modules package-lock.json
+    echo "[OK] node_modules and package-lock.json removed."
 else
-    echo "[WARN] Verification script not found."
+    echo "[INFO] Skipped optional cleanup."
 fi
 
-echo ""
-echo "=== Playwright installation complete ==="
+pause
+
+
+# ------------------------------------------------------------
+# DONE
+# ------------------------------------------------------------
+echo "=== Playwright uninstall complete ==="
 printf "Press Enter to exit..."
 read dummy

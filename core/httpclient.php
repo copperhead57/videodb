@@ -288,42 +288,70 @@ function download($url, $local)
 
 function detectEnvironment(): string
 {
-    // Windows
+    // 1. Windows
     if (stripos(PHP_OS_FAMILY, 'Windows') !== false) 
     {
         return 'windows';
     }
 
-    // macOS
+    // 2. macOS
     if (PHP_OS_FAMILY === 'Darwin') 
     {
         return 'mac';
     }
 
-    // Linux
+    // 3. Linux
     if (PHP_OS_FAMILY === 'Linux') 
     {
-        // Detect architecture
-        $arch = php_uname('m');
-        $isArm = stripos($arch, 'aarch64') !== false || stripos($arch, 'arm') !== false;
-        $isIntel = stripos($arch, 'x86_64') !== false;
-
-        // Detect NAS-like environment (Synology, QNAP, etc.)
+        // Detect NAS (Synology, QNAP, TrueNAS)
         $isNas = file_exists('/etc.defaults/VERSION')       // Synology
               || file_exists('/etc/config/uLinux.conf')    // QNAP
               || file_exists('/etc/truenas-version');      // TrueNAS SCALE
 
-        if ($isNas) {
-            if ($isArm) return 'linux-nas-arm64';
-            if ($isIntel) return 'linux-nas-intel';
+        if ($isNas) 
+        {
+            $arch = php_uname('m');
+            if (stripos($arch, 'aarch64') !== false) return 'linux-nas-arm64';
+            if (stripos($arch, 'x86_64') !== false) return 'linux-nas-intel';
             return 'linux-nas-unknown';
         }
 
-        // Native Linux
-        //if ($isArm) return 'linux-arm64';
-        //if ($isIntel) return 'linux-intel';
+        // Detect webserver user (PHP reports file owner, not Apache worker)
+        $user = get_current_user();
 
-        return 'linux';
+        // Detect desktop vs server
+        $isServer = getenv('DISPLAY') === false;
+
+        // Detect actual Apache worker user (XAMPP uses daemon)
+       $apacheUser = trim(shell_exec("ps -eo user,args | awk '/httpd/ && !/grep/ && \$1!=\"root\" {print \$1; exit}'"));
+
+        // XAMPP detection:
+        // Must be installed AND running (daemon)
+        if (file_exists('/opt/lampp') && $apacheUser === 'daemon') 
+        {
+            return 'linux-xampp';
+        }
+
+        // Debian/Ubuntu/Mint native Apache
+        if ($user === 'www-data' || $apacheUser === 'www-data') 
+        {
+            return $isServer ? 'linux-native-server' : 'linux-native-desktop';
+        }
+
+        // RedHat/CentOS/Fedora
+        if ($user === 'apache' || $apacheUser === 'apache') 
+        {
+            return $isServer ? 'linux-redhat-server' : 'linux-redhat-desktop';
+        }
+
+        // Arch/Manjaro
+        if ($user === 'http' || $apacheUser === 'http') 
+        {
+            return $isServer ? 'linux-arch-server' : 'linux-arch-desktop';
+        }
+
+        // Fallback
+        return 'linux-unknown';
     }
 
     return 'unknown';
@@ -332,86 +360,123 @@ function detectEnvironment(): string
 function runPlaywright(string $url): array
 {
     global $config;
-    
+
     $debug_playwright = 1;
-    
+
     $env  = detectEnvironment();
-    
-    if ($config['debug'] || $debug_playwright)
+
+    if ($config['debug'] || $debug_playwright) 
     {
         dlog("**************");
-        dlog("runPlaywright:detectedvironment:".$env);
+        dlog("runPlaywright:detectedEnvironment: ".$env);
     }
     $root = realpath(__DIR__ . '/..');
     $path = $root . '/lib/playwright';
 
-    switch ($env) 
-    {
+    $cmd = null;
+
+    switch ($env) {
+
+        // * WINDOWS
         case 'windows':
             $node   = escapeshellarg("$path/win/node.exe");
             $script = escapeshellarg("$path/win/imdb-fetch-win.mjs");
+
             $cmd =
                 "cmd /C " .
                 "set \"PLAYWRIGHT_BROWSERS_PATH=$path/win/node_modules/playwright-core/.local-browsers\" && " .
                 "$node $script " . escapeshellarg($url);
             break;
-        
+
+        // * macOS + ALL Linux variants
         case 'mac':
-        case 'linux':
-            // New root folder for Linux + mac shared environment
-            $PLAYROOT = $path.'/linux-mac';
-            // Wrapper + helper scripts now live inside linux-mac/
-            $nodewrapper = escapeshellarg("$PLAYROOT/xvfb.sh");
-            $nodex       = escapeshellarg("$PLAYROOT/node-clean.sh");
-            // Shared fetcher for Linux + mac
-            $script      = escapeshellarg("$PLAYROOT/imdb-fetch-unix.mjs");
-            $urlArg      = escapeshellarg($url);
-            // Determine desktop user from group owner of xvfb.sh
-            $stat = posix_getgrgid(filegroup("$PLAYROOT/xvfb.sh"));
-            $desktopUser = $stat['name'];
-            // Fallback if group is root or empty
-            if ($desktopUser === 'root' || empty($desktopUser)) {
-                $desktopUser = get_current_user();
+        case 'mac-arm':
+        case 'mac-intel':
+        case 'linux-native-desktop':
+        case 'linux-native-server':
+        case 'linux-xampp':
+            $PLAYROOT   = "$path/linux-mac";
+            $xvfb       = escapeshellarg("$PLAYROOT/xvfb.sh");
+            $node       = "node";
+            $script     = escapeshellarg("$PLAYROOT/imdb-fetch-unix.mjs");
+            $urlArg     = escapeshellarg($url);
+
+            // * get the USER or environment
+            switch ($env) 
+            {
+                case 'mac':
+                case 'mac-arm':
+                case 'mac-intel':
+                    $runUser = get_current_user();
+                    break;
+
+                case 'linux-native-server':
+                    $runUser = 'www-data';
+                    break;
+
+                case 'linux-xampp':
+                    $runUser = 'daemon';
+                    break;
+
+                case 'linux-native-desktop':
+                default:
+                    $runUser = get_current_user();
+                    break;
             }
-            // Final command
-            $cmd = '/usr/bin/sudo -n -u ' . escapeshellarg($desktopUser)
-                 . ' ' . $nodewrapper . ' ' . $nodex . ' ' . $script . ' ' . $urlArg;
+
+            $cmd = '/usr/bin/sudo -n -u ' . escapeshellarg($runUser)
+                 . " $xvfb $node $script $urlArg";
             break;
 
+        // * NAS
         case 'linux-nas-arm64':
-            $script = escapeshellarg("$path/linux-nas-arm64/imdb-fetch.js");
-            $cmd = "node $script " . escapeshellarg($url);
-            break;
-        
         case 'linux-nas-intel':
-            // this is untested but believe will work
             $script = escapeshellarg("$path/linux-nas-arm64/imdb-fetch.js");
             $cmd = "node $script " . escapeshellarg($url);
             break;
-        
+
         default:
             return [
                 'ok'    => false,
-                'error' => 'Unsupported environment'
+                'error' => 'Unsupported environment: '.$env
             ];
     }
 
-    if ($config['debug'] || $debug_playwright)
-    {
+    // EXECUTION
+    if ($config['debug'] || $debug_playwright) {
         dlog("runPlaywright:cmd:" . $cmd);
     }
-    
+
     // Capture stdout + stderr
     $output = shell_exec($cmd . " 2>&1");
 
     // debug trace of playwright js scripts and last line is result
-    if ($config['debug'] || $debug_playwright)
+    if ($config['debug'] || $debug_playwright) 
     {
         dlog("runPlaywright:Start Playwright Output");
-        dlog($output);
+        $lines = explode("\n", $output);
+        // Remove trailing blank lines
+        while (count($lines) > 1 && trim(end($lines)) === '') 
+        {
+            array_pop($lines);
+        }
+        // The last non-empty line is JSON
+        $jsonLine = trim(end($lines));
+        // Print all lines EXCEPT the last one (wrapper logs)
+        for ($i = 0; $i < count($lines) - 1; $i++) 
+        {
+            dlog($lines[$i]);
+        }
+        // Truncate JSON if too long
+        $max = 500;
+        if (strlen($jsonLine) > $max) 
+        {
+            $jsonLine = substr($jsonLine, 0, $max) . "... [truncated]";
+        }
+        dlog("JSON: " . $jsonLine);
         dlog("runPlaywright:End Playwright Output");
     }
-    
+
     if (!$output) 
     {
         return [
@@ -420,7 +485,7 @@ function runPlaywright(string $url): array
             'cmd'   => $cmd
         ];
     }
-    
+
     $lines = explode("\n", $output);
     // remove *only* empty lines at the end, not in the middle
     while (count($lines) > 1 && trim(end($lines)) === '') 

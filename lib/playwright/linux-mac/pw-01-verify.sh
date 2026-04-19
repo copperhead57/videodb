@@ -15,6 +15,8 @@ fi
 BASE_DIR="$(dirname "$0")"
 PW_ROOT="$BASE_DIR"
 BROWSER_ROOT="$BASE_DIR/$OS_DIR/browsers"
+RUNTIME_PROFILE="$BASE_DIR/chrome-profile"
+RUNTIME_HOME="$BASE_DIR/chrome-home"
 
 check() {
     label="$1"
@@ -106,6 +108,21 @@ if [ -n "$ffmpeg" ]; then
 else
     echo "[FAIL] FFmpeg not found"
 fi
+
+echo ""
+
+
+# ------------------------------------------------------------
+# Runtime Folders (chrome-profile + chrome-home)
+# ------------------------------------------------------------
+echo "--- Playwright Runtime Folders ---"
+
+check "chrome-profile folder" "$RUNTIME_PROFILE"
+check "chrome-home folder" "$RUNTIME_HOME"
+
+check "chrome-home/.config/Crashpad" "$RUNTIME_HOME/.config/Crashpad"
+check "chrome-home/.cache" "$RUNTIME_HOME/.cache"
+check "chrome-home/.local/share" "$RUNTIME_HOME/.local/share"
 
 echo ""
 
