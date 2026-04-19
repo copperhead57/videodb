@@ -66,7 +66,8 @@ This checks:
 - Playwright CLI
 - Chromium
 - FFmpeg
-- Headless Shell
+- Headed browser
+- Headless Shell browser
 - Winldd
 
 If all items show **[OK]**, your environment is ready for installation.

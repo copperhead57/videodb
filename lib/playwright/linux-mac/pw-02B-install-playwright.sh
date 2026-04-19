@@ -109,6 +109,26 @@ pause
 
 
 # ------------------------------------------------------------
+# STEP 7 — Create Playwright runtime folders
+# ------------------------------------------------------------
+echo "--- Step 7: Creating Playwright runtime folders ---"
+
+RUNTIME_DIR="$BASE_DIR"
+
+echo "[INFO] Creating chrome-profile and chrome-home..."
+
+sudo -u www-data mkdir -p "$RUNTIME_DIR/chrome-profile"
+sudo -u www-data mkdir -p "$RUNTIME_DIR/chrome-home/.config/Crashpad"
+sudo -u www-data mkdir -p "$RUNTIME_DIR/chrome-home/.cache"
+sudo -u www-data mkdir -p "$RUNTIME_DIR/chrome-home/.local/share"
+
+echo "[OK] Runtime folders created:"
+echo " - $RUNTIME_DIR/chrome-profile"
+echo " - $RUNTIME_DIR/chrome-home"
+pause
+
+
+# ------------------------------------------------------------
 # STEP 6 — Final verification
 # ------------------------------------------------------------
 echo "--- Step 6: Running verification script ---"

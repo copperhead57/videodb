@@ -42,6 +42,8 @@ trace.zip
 ########################################
 **/chrome-profile/
 **/chrome-profile*/
+**/chrome-home/
+**/chrome-home*/
 
 ########################################
 # OS Junk

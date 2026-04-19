@@ -8,6 +8,14 @@ if [ $# -lt 1 ]; then
   exit 2
 fi
 
-# Build the command to run under xvfb-run
-# "$@" preserves all arguments (command + its args)
+# Resolve this script's directory
+BASE_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# Project-local HOME for Chromium (required for headed mode)
+export HOME="$BASE_DIR/chrome-home"
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_CACHE_HOME="$HOME/.cache"
+export XDG_DATA_HOME="$HOME/.local/share"
+
+# Run the command inside a temporary Xvfb display
 exec xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' "$@"

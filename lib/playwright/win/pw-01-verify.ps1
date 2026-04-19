@@ -47,6 +47,14 @@ if ($ffmpeg) {
     Write-Host "[FAIL] FFmpeg not found"
 }
 
+# Headed
+$headless = Get-ChildItem "$browserRoot" -Directory -Filter "chromium-*" -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($headless) {
+    Write-Host "[OK] Chromium Headed installed ($($headless.Name))"
+} else {
+    Write-Host "[FAIL] Chromium Headed not found"
+}
+
 # Headless Shell
 $headless = Get-ChildItem "$browserRoot" -Directory -Filter "chromium_headless_shell-*" -ErrorAction SilentlyContinue | Select-Object -First 1
 if ($headless) {

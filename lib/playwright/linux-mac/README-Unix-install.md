@@ -1,212 +1,206 @@
-# ============================================================
-# PLAYWRIGHT INSTALLATION (Linux + macOS)
-# ============================================================
-# Unified structure (2026):
-#
+# Playwright Headful Environment (Linux/macOS + Windows)
+Unified Runtime Architecture • Persistent Profile • Project‑Local HOME
+
+This project includes a fully self‑contained Playwright headful environment that works consistently across:
+- Linux (native Apache, www‑data)
+- Linux (XAMPP, daemon)
+- macOS
+- Windows
+
+No system‑level browser installation is required.  
+All runtime state is stored inside the project.
+
+--------------------------------------------------------------------------------
+📁 Folder Structure
+--------------------------------------------------------------------------------
+
 lib/playwright/
     linux-mac/
-        xvfb.sh
-        node-clean.sh
-        imdb-fetch-unix.mjs        ← unified wrapper + fetcher
-        node_modules/
-
+        chrome-profile/      ← Persistent browser profile (same as Windows)
+        chrome-home/         ← Chromium HOME (Crashpad + XDG dirs)
+        xvfb.sh              ← Headful wrapper for Linux/mac
+        imdb-fetch-unix.mjs  ← Persistent-context fetcher
         linux/
-            browsers/
-
+            browsers/        ← Playwright browser binaries
         mac/
-            browsers/
-#
-# ============================================================
+            browsers/        ← Playwright browser binaries
 
+    windows/
+        chrome-profile/      ← Windows persistent profile
+        imdb-fetch-win.mjs   ← Windows persistent-context fetcher
 
+--------------------------------------------------------------------------------
+🧠 Why This Architecture Exists
+--------------------------------------------------------------------------------
 
-# ============================================================
-# 0. RECOMMENDED: AUTOMATED INSTALL METHOD
-# ============================================================
-# These scripts:
-# - Detect OS (Linux or macOS)
-# - Install Playwright-core into linux-mac/node_modules/
-# - Install browsers into linux/browsers/ or mac/browsers/
-# - Install GUI dependencies on Linux only
-# - Verify installation before and after
-# - Prepare unified fetcher (imdb-fetch-unix.mjs)
-# - Prevent incorrect installs
+Linux/mac headful Chromium requires:
+- a writable HOME directory
+- Crashpad database
+- XDG directories
+- persistent profile (for stability + WAF bypass)
 
+Windows already has these by default.  
+Linux/mac under Apache does not.
 
+So we provide them inside the project:
 
-# ------------------------------------------------------------
-# Step A — Install Node (optional helper)
-# ------------------------------------------------------------
-./pw-02A-install-node.sh
+chrome-profile/  
+    Persistent browser profile (cookies, sessions, WAF tokens).
 
+chrome-home/  
+    Chromium HOME containing:
+        .config/Crashpad/
+        .cache/
+        .local/share/
 
+This prevents:
+- chrome_crashpad_handler: --database is required
+- forced --no-startup-window
+- instant Chromium crashes under www‑data
 
-# ------------------------------------------------------------
-# Step B — Install Playwright (auto-detects OS)
-# ------------------------------------------------------------
-./pw-02B-install-playwright.sh
+--------------------------------------------------------------------------------
+🛠 Installation (Linux/macOS)
+--------------------------------------------------------------------------------
 
+Run:
 
+    ./pw-02B-install-playwright.sh
 
-# ------------------------------------------------------------
-# Step C — Verify installation
-# ------------------------------------------------------------
-./pw-01-verify.sh
+This script:
+1. Verifies Node
+2. Ensures package.json exists
+3. Installs Playwright
+4. Installs Playwright browsers
+5. Installs GUI dependencies (Linux only)
+6. Creates runtime folders:
+       chrome-profile/
+       chrome-home/
+7. Runs verification
 
-# Expected output:
-# ✔ Node OK
-# ✔ Playwright-core OK
-# ✔ Browser bundle found
-# ✔ Profile folder OK
-# ✔ Unified fetcher OK
+--------------------------------------------------------------------------------
+🧹 Cleaning Runtime Caches (non-destructive)
+--------------------------------------------------------------------------------
 
+    ./pw-03B-clean-cache-only.sh
 
+This removes:
+- browser caches
+- GPUCache
+- Code Cache
+- chrome-home/.cache
 
-# ============================================================
-# 1. SUDO SETUP (REQUIRED FOR XAMPP + GUI)
-# ============================================================
-# Playwright must run as the *desktop user*, even when launched
-# by the *webserver user* (Apache/XAMPP).
-#
-# These scripts configure safe, minimal sudo permissions:
-#   pw-sudo-01-setup.sh
-#   pw-sudo-02-verify.sh
-#   pw-sudo-03-undo.sh
-#
-# Only these 3 scripts get NOPASSWD permissions:
-#   xvfb.sh
-#   node-clean.sh
-#   imdb-fetch-unix.mjs
+But keeps:
+- cookies
+- sessions
+- WAF tokens
+- persistent profile
 
+--------------------------------------------------------------------------------
+❌ Uninstalling Playwright
+--------------------------------------------------------------------------------
 
+    ./pw-03A-uninstall-playwright.sh
 
-# ------------------------------------------------------------
-# Step 1 — Run sudo setup (as root)
-# ------------------------------------------------------------
-sudo PLAYROOT=/full/path/to/lib/playwright/linux-mac \
-    ./pw-sudo-01-setup.sh
+This removes:
+- Playwright npm packages
+- Playwright browsers
+- chrome-profile/
+- chrome-home/
+- (optional) node_modules + package-lock.json
 
-# This script:
-# - Auto-detects webserver user (XAMPP-first)
-# - Auto-detects desktop user
-# - Applies correct permissions (root:pdb, chmod 770)
-# - Writes sudoers entry
-# - Validates sudoers with visudo
+--------------------------------------------------------------------------------
+🧪 Verification
+--------------------------------------------------------------------------------
 
+    ./pw-01-verify.sh
 
+Checks:
+- Node + npm
+- Playwright packages
+- Browser binaries
+- chrome-profile/
+- chrome-home/
+- Crashpad + XDG dirs
+- GTK/X11/NSS (Linux)
 
-# ------------------------------------------------------------
-# Step 2 — Verify sudo setup
-# ------------------------------------------------------------
-./pw-sudo-02-verify.sh
+--------------------------------------------------------------------------------
+🖥 Headful Mode (Linux/macOS)
+--------------------------------------------------------------------------------
 
-# Expected:
-# ✔ xvfb.sh OK
-# ✔ node-clean.sh OK
-# ✔ imdb-fetch-unix.mjs OK
-# ✔ sudoers entry OK
+All headful commands must run through:
 
+    ./xvfb.sh <command>
 
+Example:
 
-# ------------------------------------------------------------
-# Step 3 — Undo sudo setup (optional)
-# ------------------------------------------------------------
-sudo ./pw-sudo-03-undo.sh
+    ./xvfb.sh node imdb-fetch-unix.mjs "https://www.imdb.com/title/tt0111161/"
 
-# This removes:
-# - sudoers entry
-# - resets permissions to 755
-# - restores root:root ownership
+xvfb.sh automatically sets:
 
+    HOME=chrome-home/
+    XDG_CONFIG_HOME=chrome-home/.config
+    XDG_CACHE_HOME=chrome-home/.cache
+    XDG_DATA_HOME=chrome-home/.local/share
 
+This ensures Chromium launches correctly under www‑data.
 
-# ============================================================
-# 2. MANUAL INSTALL METHOD (if preferred)
-# ============================================================
+--------------------------------------------------------------------------------
+🌐 Linux/macOS Fetcher (Persistent Profile)
+--------------------------------------------------------------------------------
 
-# ------------------------------------------------------------
-# Step 1 — Install Node (system-wide)
-# ------------------------------------------------------------
+    node imdb-fetch-unix.mjs <url>
 
-# Linux (NodeSource)
-curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
-sudo apt install -y nodejs
+Uses:
+- persistent profile: chrome-profile/
+- Chromium HOME: chrome-home/
+- correct Chromium executable path (Linux + macOS)
 
-# macOS/Linux (nvm)
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-source ~/.bashrc
-nvm install --lts
+--------------------------------------------------------------------------------
+🪟 Windows Fetcher (Persistent Profile)
+--------------------------------------------------------------------------------
 
-# Verify
-node -v
-npm -v
+    node imdb-fetch-win.mjs <url>
 
+Uses:
+- persistent profile: chrome-profile/
+- Windows Chromium path
+- no Xvfb required
 
+--------------------------------------------------------------------------------
+🧩 Cross‑Platform Summary
+--------------------------------------------------------------------------------
 
-# ------------------------------------------------------------
-# Step 2 — Install Playwright-core (shared Linux + mac)
-# ------------------------------------------------------------
-cd lib/playwright/linux-mac
-npm init -y
-npm install playwright
+Component              Linux/mac             Windows
+------------------------------------------------------------
+Persistent profile     chrome-profile/       chrome-profile/
+Chromium HOME          chrome-home/          Windows HOME
+Crashpad DB            chrome-home/.config   Built-in
+Headful wrapper        xvfb.sh               Not needed
+Fetcher                imdb-fetch-unix.mjs   imdb-fetch-win.mjs
 
+Everything is now unified and predictable.
 
+--------------------------------------------------------------------------------
+📌 .gitignore
+--------------------------------------------------------------------------------
 
-# ------------------------------------------------------------
-# Step 3 — Install Playwright browsers (OS-specific)
-# ------------------------------------------------------------
+Ensure these are ignored:
 
-# Linux
-PLAYWRIGHT_BROWSERS_PATH=./linux/browsers \
-npx playwright install
+    chrome-profile/
+    chrome-home/
+    linux/browsers/
+    mac/browsers/
+    node_modules/
+    package-lock.json
 
-# macOS
-PLAYWRIGHT_BROWSERS_PATH=./mac/browsers \
-npx playwright install
+--------------------------------------------------------------------------------
+🎉 Your Playwright environment is now fully unified
+--------------------------------------------------------------------------------
 
-
-
-# ------------------------------------------------------------
-# Step 4 — Install GUI dependencies (Linux only)
-# ------------------------------------------------------------
-sudo npx playwright install-deps
-
-# macOS does NOT require this step.
-
-
-
-# ------------------------------------------------------------
-# Step 5 — Verify installation
-# ------------------------------------------------------------
-./pw-01-verify.sh
-
-
-
-# ============================================================
-# 3. RUNNING PLAYWRIGHT (via PHP / XAMPP)
-# ============================================================
-
-# PHP launcher calls:
-sudo -u <webuser> sudo -n -u <desktopuser> \
-    xvfb.sh node-clean.sh imdb-fetch-unix.mjs "<url>"
-
-# The unified .mjs file:
-# - Sets DISPLAY / XAUTHORITY / DBUS
-# - Resets LD_LIBRARY_PATH
-# - Sets NODE_PATH + PLAYWRIGHT_BROWSERS_PATH
-# - Launches portable Chromium
-# - Waits for AWS WAF
-# - Returns JSON:
-#
-# {
-#   "ok": true,
-#   "html": "<full html>",
-#   "wafDetected": false,
-#   "error": null
-# }
-
-
-
-# ============================================================
-# END OF INSTALLATION
-# ============================================================
+- No XAMPP vs native Apache split
+- No environment-specific hacks
+- No crashpad errors
+- No --no-startup-window
+- No temporary profiles
+- Fully portable
+- Fully contributor‑friendly
