@@ -159,7 +159,9 @@ function httpClient($url, $cache = false, $para = null, $reload = false)
     if (empty($requestConfig['headers']['User-Agent'])) $requestConfig['headers']['User-Agent'] = filter_input(INPUT_SERVER, 'HTTP_USER_AGENT');
     if (empty($requestConfig['headers']['Referer'])) $requestConfig['headers']['Referer'] = $referer;
 
+    #dlog(date("Y-m-d")." T".date("H-i-s")." - Guzzle: Before: url:".$url);
     $resp = $client->request($method, $url, $requestConfig);
+    #dlog(date("Y-m-d")." T".date("H-i-s")." - Guzzle: After: url:".$url);
 
     $response['error'] = '';
     $response['url'] = $url;

@@ -1,5 +1,6 @@
 <?php
 // DEFUNCT, maybe implement new api since current code doesn't work anymore: https://developers.google.com/youtube/v3/docs/search
+// code amended in function youtubeSearch to return null array
  
 /**
  * youtube.com trailer search
@@ -41,7 +42,17 @@ function normalize($str)
 
 function youtubeSearch($title)
 {
-	$trailers       = array();
+    // YouTube API v2 is defunct; bypass until v3 upgrade is implemented
+    // all old code has been commented out
+    global $config;
+    if ($config['debug'])
+    {
+        dlog("\n****Warning: function youtubeSearch: YouTube API bypassed: v2 defunct\n");
+    }
+    return [];
+/*
+ *  old api v2 code
+    $trailers       = array();
     $title	        = normalize($title);
     $trailerquery	= $title." trailer";
 
@@ -70,5 +81,7 @@ function youtubeSearch($title)
     }
 
 	return $trailers;
+ * 
+ */
 }
 
