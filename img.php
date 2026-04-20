@@ -30,6 +30,40 @@ $url = req_url('url');
 // for php bug #22526 session_start/popen hang 
 session_write_close();
 
+/* 
+* ------------------------------------------------------------
+ * GLOBAL LOCK + RETRY QUEUE (NAS ARM64 SAFE)
+ * ------------------------------------------------------------
+ * Ensures only ONE Playwright actor fetch runs at a time.
+ * Prevents NAS overload when many <img> tags load in parallel.
+ * Browser will retry automatically until the actor image is ready.
+ */
+$isSlowEnvironment =
+    (php_uname('m') === 'aarch64' || php_uname('m') === 'arm64') ||
+    file_exists('/etc.defaults/VERSION');
+
+if ($isSlowEnvironment) 
+{
+    // Only NAS/ARM64 uses the lock
+    $lockFile = __DIR__ . "/cache/locks/imdb_actor_fetch.lock";
+    $lock = fopen($lockFile, "c");
+
+    $maxWait = 60;
+    $waited  = 0;
+
+    while (!flock($lock, LOCK_EX | LOCK_NB)) {
+        sleep(1);
+        $waited++;
+
+        if ($waited >= $maxWait) {
+            header("Content-Type: image/gif");
+            readfile("img/placeholder.gif");
+            exit;
+        }
+    }
+}
+// At this point, we hold the lock and can safely run engineActor()
+
 /**
  * amazon workaround for 1 pixel transparent images
  */
@@ -128,3 +162,13 @@ $file = preg_replace('/img\.php$/', $file, $_SERVER['PHP_SELF']);
 
 header('Location: '.$file);
 
+/**
+ * ------------------------------------------------------------
+ * RELEASE LOCK
+ * ------------------------------------------------------------
+ */
+if ($isSlowEnvironment && isset($lock)) 
+{
+    flock($lock, LOCK_UN);
+    fclose($lock);
+}
