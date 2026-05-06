@@ -174,19 +174,21 @@ function httpClient($url, $cache = false, $para = null, $reload = false)
     //if ($config['debug']) echoHeaders($response['header'])."<p>";
     //if ($config['debug']) echo "data:<br>".htmlspecialchars($response['data'])."<p>";
 
-    
+    $status = $resp->getStatusCode();    
     // log response
     if ($config['httpclientlog'])
     {
         $log = fopen('httpClient.log', 'a');
+        $logTime = date('Y-m-d H:i:s') . '.' . explode(' ', microtime())[1];
+        fwrite($log, "****** {$logTime} - Guzzle: url: {$url} Status: {$status}");
         fwrite($log, headers_to_string($response['header']));
         fclose($log);
     }
 
-    $status = $resp->getStatusCode();
     if ($config['debug'])
     {
-        dlog(date("Y-m-d")." T".date("H-i-s")." - Guzzle: url:".$url." Status:".$status);
+        $logTime = date('Y-m-d H:i:s') . '.' . explode(' ', microtime())[1];
+        dlog("******* {$logTime} - Guzzle: url: {$url} Status: {$status}");
     }
     
     // verify status code
@@ -321,35 +323,32 @@ function detectEnvironment(): string
         // Detect webserver user (PHP reports file owner, not Apache worker)
         $user = get_current_user();
 
-        // Detect desktop vs server
-        $isServer = getenv('DISPLAY') === false;
-
-        // Detect actual Apache worker user (XAMPP uses daemon)
-       $apacheUser = trim(shell_exec("ps -eo user,args | awk '/httpd/ && !/grep/ && \$1!=\"root\" {print \$1; exit}'"));
+        // Detect actual Apache worker user (System Apache or XAMPP)
+        $apacheUser = trim(shell_exec("ps -eo user,args | awk '/apache2|httpd/ && !/grep/ && \$1!=\"root\" {print \$1; exit}'"));
 
         // XAMPP detection:
         // Must be installed AND running (daemon)
         if (file_exists('/opt/lampp') && $apacheUser === 'daemon') 
         {
-            return 'linux-xampp';
+            return 'linux-apache-lampp';
         }
 
-        // Debian/Ubuntu/Mint native Apache
+        // Debian/Ubuntu/Mint system Apache
         if ($user === 'www-data' || $apacheUser === 'www-data') 
         {
-            return $isServer ? 'linux-native-server' : 'linux-native-desktop';
+            return 'linux-apache-system';
         }
 
         // RedHat/CentOS/Fedora
         if ($user === 'apache' || $apacheUser === 'apache') 
         {
-            return $isServer ? 'linux-redhat-server' : 'linux-redhat-desktop';
+            return 'linux-apache-redhat';
         }
 
         // Arch/Manjaro
         if ($user === 'http' || $apacheUser === 'http') 
         {
-            return $isServer ? 'linux-arch-server' : 'linux-arch-desktop';
+            return 'linux-apache-arch';
         }
 
         // Fallback
@@ -365,24 +364,34 @@ function runPlaywright(string $url): array
 
     $debug_playwright = 1;
 
-    $env  = detectEnvironment();
-
-    if ($config['debug'] || $debug_playwright) 
+    // LOCKING FOR QUEUING CALLS TO PLAYWRIGHT
+    $lock = null;
+    $lock = playwrightLock_acquire();
+    if ($lock === false)
     {
-        dlog("**************");
-        dlog("runPlaywright:detectedEnvironment: ".$env);
+        return ['ok'    => false,
+                'error' => 'Playwright-timeout: ' . $url,
+                'cmd'   => null
+               ];
     }
-    $root = realpath(__DIR__ . '/..');
-    $path = $root . '/lib/playwright';
 
-    $cmd = null;
+    // ENVIRONMENT DETECTION
+    $env = detectEnvironment();
 
-    switch ($env) {
+    if ($config['debug'] || $debug_playwright) {
+        dlog("**************");
+        dlog("runPlaywright:detectedEnvironment: " . $env);
+    }
 
-        // * WINDOWS
+    $path = './lib/playwright';
+    $cmd  = null;
+
+    switch ($env) 
+    {
+        // WINDOWS
         case 'windows':
             $node   = escapeshellarg("$path/win/node.exe");
-            $script = escapeshellarg("$path/win/imdb-fetch-win.mjs");
+            $script = escapeshellarg("$path/win/imdb-fetch-headed.mjs");
 
             $cmd =
                 "cmd /C " .
@@ -390,57 +399,37 @@ function runPlaywright(string $url): array
                 "$node $script " . escapeshellarg($url);
             break;
 
-        // * macOS + ALL Linux variants
+        // macOS (placeholder) - linux install may work
         case 'mac':
         case 'mac-arm':
         case 'mac-intel':
-        case 'linux-native-desktop':
-        case 'linux-native-server':
-        case 'linux-xampp':
-            $PLAYROOT   = "$path/linux-mac";
-            $xvfb       = escapeshellarg("$PLAYROOT/xvfb.sh");
-            $node       = "node";
-            $script     = escapeshellarg("$PLAYROOT/imdb-fetch-unix.mjs");
-            $urlArg     = escapeshellarg($url);
-
-            // * get the USER or environment
-            switch ($env) 
-            {
-                case 'mac':
-                case 'mac-arm':
-                case 'mac-intel':
-                    $runUser = get_current_user();
-                    break;
-
-                case 'linux-native-server':
-                    $runUser = 'www-data';
-                    break;
-
-                case 'linux-xampp':
-                    $runUser = 'daemon';
-                    break;
-
-                case 'linux-native-desktop':
-                default:
-                    $runUser = get_current_user();
-                    break;
-            }
-
-            $cmd = '/usr/bin/sudo -n -u ' . escapeshellarg($runUser)
-                 . " $xvfb $node $script $urlArg";
             break;
 
-        // * NAS
+        // LINUX (new architecture: wrapper + sudo → apache user)
+        case 'linux-apache-system':
+        case 'linux-apache-lampp':
+            $playroot = "$path/linux";
+            $wrapper = realpath("$playroot/imdb-fetch-headless.sh");
+            $urlArg   = escapeshellarg($url);
+            // Map environment → Apache user (must match sudoers)
+            $runUser = get_current_user(); 
+
+            $cmd = '/usr/bin/sudo -n -u ' . $runUser . " $wrapper $urlArg";
+            break;
+
+        // NAS
         case 'linux-nas-arm64':
         case 'linux-nas-intel':
             $script = escapeshellarg("$path/linux-nas-arm64/imdb-fetch.js");
             $cmd = "node $script " . escapeshellarg($url);
             break;
 
+        // Unsupported
         default:
             return [
                 'ok'    => false,
-                'error' => 'Unsupported environment: '.$env
+                'error' => 'Unsupported environment: ' . $env,
+                'cmd'   => null
             ];
     }
 
@@ -452,14 +441,11 @@ function runPlaywright(string $url): array
     // Capture stdout + stderr
     $output = shell_exec($cmd . " 2>&1");
 
-    // debug trace of playwright js scripts and last line is result
-    if ($config['debug'] || $debug_playwright) 
-    {
+    // DEBUG OUTPUT
+    if ($config['debug'] || $debug_playwright) {
         dlog("runPlaywright:Start Playwright Output");
-        $lines = explode("\n", $output);
-        // Remove trailing blank lines
-        while (count($lines) > 1 && trim(end($lines)) === '') 
-        {
+        $lines = explode("\n", (string)$output);
+        while (count($lines) > 1 && trim(end($lines)) === '') {
             array_pop($lines);
         }
         // The last non-empty line is JSON
@@ -479,8 +465,11 @@ function runPlaywright(string $url): array
         dlog("runPlaywright:End Playwright Output");
     }
 
-    if (!$output) 
-    {
+    // RELEASE LOCK
+    playwrightLock_release($lock);
+
+    // PARSE JSON
+    if (!$output) {
         return [
             'ok'    => false,
             'error' => 'No output from Playwright',
@@ -509,6 +498,76 @@ function runPlaywright(string $url): array
     }
 
     return $json;
+}
+
+function playwrightLock_acquire(int $maxAgeSeconds = 300,   // 5 minutes
+                                int $maxWait = 120          // 2 minutes
+                               ) 
+{
+    $lockFile = "./cache/locks/imdb_playwright_fetch.lock";
+
+    if (!is_dir(dirname($lockFile))) 
+    {
+        @mkdir(dirname($lockFile), 0777, true);
+    }
+
+    $lock = fopen($lockFile, "c+");
+    if (!$lock) 
+    {
+        return false;
+    }
+
+    // Check stale lock before acquiring
+    $stat  = fstat($lock);
+    $mtime = $stat['mtime'] ?? time();
+
+    if (time() - $mtime > $maxAgeSeconds) 
+    {
+        // Stale → reset
+        ftruncate($lock, 0);
+    }
+
+    $waited = 0;
+
+    while (!flock($lock, LOCK_EX | LOCK_NB)) 
+    {
+        // Re-check stale while waiting
+        clearstatcache(true, $lockFile);
+        $fileMtime = filemtime($lockFile);
+
+        if (time() - $fileMtime > $maxAgeSeconds) 
+        {
+            // Force acquire stale lock
+            flock($lock, LOCK_EX);
+            ftruncate($lock, 0);
+            break;
+        }
+
+        sleep(1);
+        $waited++;
+
+        if ($waited >= $maxWait) 
+        {
+            fclose($lock);
+            return false;
+        }
+    }
+
+    // Update timestamp to show active lock
+    ftruncate($lock, 0);
+    fwrite($lock, (string)time());
+    fflush($lock);
+
+    return $lock;
+}
+
+function playwrightLock_release($lock)
+{
+    if ($lock) 
+    {
+        flock($lock, LOCK_UN);
+        fclose($lock);
+    }
 }
 
 ?>

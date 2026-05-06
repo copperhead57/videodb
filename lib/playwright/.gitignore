@@ -4,9 +4,11 @@
 
 # Browser binaries (HUGE — never commit)
 **/.local-browsers/
-**/browsers/
 
-# Playwright downloaded archives
+# Browser binaries (HUGE — never commit)
+**/package-lock.json
+
+# Playwright downloaded archives (windows)
 **/playwright*.zip
 
 ########################################
@@ -25,6 +27,9 @@ win/npx.cmd
 
 # Synology-specific node_modules
 synology/node_modules/
+
+# LINUX spewcific files 
+**/playwright-env.sh
 
 ########################################
 # ZIP files inside Playwright folders

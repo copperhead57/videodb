@@ -122,7 +122,8 @@ function cache_create_folders($dir, $levels = 0)
     $error = '';
     if (!is_dir($dir))
     {
-        if (!@mkdir($dir, 0700)) $error = 'Directory <code>'.$dir.'</code> does not exist.<br/>';
+        //if (!@mkdir($dir, 0700)) $error = 'Directory <code>'.$dir.'</code> does not exist.<br/>';
+        if (!@mkdir($dir, 0775, true)) $error = 'Directory <code>'.$dir.'</code> does not exist.<br/>';
     }
     elseif (!is_writable($dir))
     {

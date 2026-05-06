@@ -1,8 +1,14 @@
-Write-Host "=== Portable Environment Verification (Node 25+) ==="
+param(
+    [string]$target = "$PSScriptRoot"
+)
+
+Write-Host "=== Portable Environment Verification (Node LTS) ==="
+
+Set-Location $target
 
 function Check($label, $path) {
     if (Test-Path $path) {
-        Write-Host "[OK] $label"
+        Write-Host "[OK]   $label"
     } else {
         Write-Host "[FAIL] $label"
     }
@@ -12,15 +18,12 @@ function Check($label, $path) {
 Check "node.exe" ".\node.exe"
 Check "npm.cmd (embedded)" ".\npm.cmd"
 
-# Corepack is NOT included in Node 25 — mark as OK but not applicable
-Write-Host "[OK] corepack (not included in Node 25)"
-
-# Node 25 internal JS runtime (snapshot)
-$nodeSnapshot = .\node.exe -p "process.execPath" 2>$null
+# Node internal runtime check
+$nodeRuntime = .\node.exe -p "process.version" 2>$null
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "[OK] Node internal runtime (snapshot detected)"
+    Write-Host "[OK]   Node runtime detected ($nodeRuntime)"
 } else {
-    Write-Host "[FAIL] Node internal runtime"
+    Write-Host "[FAIL] Node runtime"
 }
 
 # --- Playwright Runtime ---
@@ -34,7 +37,7 @@ Check "Browser root folder" $browserRoot
 # Chromium
 $chromium = Get-ChildItem "$browserRoot" -Directory -Filter "chromium-*" -ErrorAction SilentlyContinue | Select-Object -First 1
 if ($chromium) {
-    Write-Host "[OK] Chromium installed ($($chromium.Name))"
+    Write-Host "[OK]   Chromium installed ($($chromium.Name))"
 } else {
     Write-Host "[FAIL] Chromium not found"
 }
@@ -42,23 +45,15 @@ if ($chromium) {
 # FFmpeg
 $ffmpeg = Get-ChildItem "$browserRoot" -Directory -Filter "ffmpeg-*" -ErrorAction SilentlyContinue | Select-Object -First 1
 if ($ffmpeg) {
-    Write-Host "[OK] FFmpeg installed ($($ffmpeg.Name))"
+    Write-Host "[OK]   FFmpeg installed ($($ffmpeg.Name))"
 } else {
     Write-Host "[FAIL] FFmpeg not found"
-}
-
-# Headed
-$headless = Get-ChildItem "$browserRoot" -Directory -Filter "chromium-*" -ErrorAction SilentlyContinue | Select-Object -First 1
-if ($headless) {
-    Write-Host "[OK] Chromium Headed installed ($($headless.Name))"
-} else {
-    Write-Host "[FAIL] Chromium Headed not found"
 }
 
 # Headless Shell
 $headless = Get-ChildItem "$browserRoot" -Directory -Filter "chromium_headless_shell-*" -ErrorAction SilentlyContinue | Select-Object -First 1
 if ($headless) {
-    Write-Host "[OK] Chromium Headless Shell installed ($($headless.Name))"
+    Write-Host "[OK]   Chromium Headless Shell installed ($($headless.Name))"
 } else {
     Write-Host "[FAIL] Chromium Headless Shell not found"
 }
@@ -66,7 +61,7 @@ if ($headless) {
 # Winldd
 $winldd = Get-ChildItem "$browserRoot" -Directory -Filter "winldd-*" -ErrorAction SilentlyContinue | Select-Object -First 1
 if ($winldd) {
-    Write-Host "[OK] Winldd installed ($($winldd.Name))"
+    Write-Host "[OK]   Winldd installed ($($winldd.Name))"
 } else {
     Write-Host "[FAIL] Winldd not found"
 }
