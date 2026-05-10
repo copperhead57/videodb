@@ -127,4 +127,3 @@ if (!is_null($url) && preg_match('/\.(jpe?g|gif|png)$/i', $url, $matches))
 $file = preg_replace('/img\.php$/', $file, $_SERVER['PHP_SELF']);
 
 header('Location: '.$file);
-

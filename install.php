@@ -150,11 +150,21 @@ switch ($step)
 					break;
 				}
 
-                // check database existance
-				if (mysqli_select_db($dbh, $db_database))
+                // check database existence (PHP 8+ safe)
+                $db_exists = false;
+                try 
                 {
-					error("DB already exists: ".$db_database);
-				}
+                    $db_exists = mysqli_select_db($dbh, $db_database);
+                } 
+                catch (mysqli_sql_exception $e) 
+                {
+                    $db_exists = false; // DB does not exist — expected
+                }
+
+                if ($db_exists)
+                {
+                    error("DB already exists: ".$db_database);
+                }
                 else
                 {
                     // database doesn't exist, create it

@@ -60,7 +60,20 @@ error_reporting(isset($config['debug']) && $config['debug'] ? E_ALL ^ E_NOTICE :
 // don't pollute output with errors
 ini_set('display_errors', false);
 // Log stuff to error.log when in debug mode
-if (isset($config['debug']) && $config['debug']) ini_set('error_log', 'error.log');
+if (isset($config['debug']) && $config['debug']) 
+{
+    // pre create error log and ensure correct permissions
+    $log = './error.log';
+    // Create file if missing
+    if (!file_exists($log)) {
+        $fh = fopen($log, 'a');   // create safely
+        if ($fh) {
+            fclose($fh);
+            chmod($log, 0664);    // rw-r--r--
+        }
+    }
+    ini_set('error_log', $log);
+}
 
 // Remove environment variables from global scope- ensures clean namespace
 foreach (array_keys($_ENV) as $key) unset($GLOBALS[$key]);
@@ -69,6 +82,18 @@ foreach (array_keys($_ENV) as $key) unset($GLOBALS[$key]);
 $smarty = new SmartyBC();
 $smarty->compile_dir     = './cache/smarty';            // path to compiled templates
 $smarty->cache_dir       = './cache/smarty';            // path to cached html
+
+// NOTE:
+// This project currently uses SmartyBC (Smarty 2 compatibility mode).
+// SmartyBC ignores the modern permission settings below and forces 0644
+// on compiled templates. These settings are kept here for the future
+// migration to Smarty 4/5, where SmartyBC is removed and permissions
+// will be respected.
+//$smarty->compile_dir_permissions = 0775;
+//$smarty->cache_dir_permissions   = 0775;
+//$smarty->compile_file_permissions = 0664;
+//$smarty->cache_file_permissions   = 0664;
+
 $smarty->plugins_dir     = array('./lib/smarty/custom', './vendor/smarty/smarty/libs/plugins');
 $smarty->use_sub_dirs    = 0;                           // restrict caching to one folder
 $smarty->loadFilter('output', 'trimwhitespace');        // remove whitespace from output
@@ -126,8 +151,14 @@ function verify_installation($return = false)
     $error = '';
 
     // check cache
-    foreach (array(CACHE => 0,CACHE.'/smarty' => 0, CACHE.'/imdb' => 1, CACHE.'/img' => 1, CACHE.'/thumbs' => 1, CACHE.'/javascript' => 0) as $dir => $hierarchical)
-	{
+    foreach (array(CACHE => 0,CACHE.'/smarty' => 0, 
+                   CACHE.'/imdb' => 1, 
+                   CACHE.'/img' => 1, 
+                   CACHE.'/thumbs' => 1, 
+                   CACHE.'/javascript' => 0,
+                   CACHE.'/locks' => 0,
+                  ) as $dir => $hierarchical)
+    {
         // check top-level folders
         $error .= cache_create_folders($dir, $hierarchical ? (int) $config['hierarchical'] : 0);
     }

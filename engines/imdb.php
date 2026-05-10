@@ -237,7 +237,11 @@ function imdbData($imdbID)
     #testing code save resp data from imdb
     #file_put_contents('./cache/httpclient-php_imdbData_title.html', $resp['data']);  // write page data to file
     
-    if (!$resp['success']) $CLIENTERROR .= $resp['error']."\n";
+    if (!$resp['success']) 
+    {
+        $CLIENTERROR .= $resp['error']."\n";
+        dlog("get mainpage error: ".$resp['error']);
+    }
 
     // extract json data from page
     if (preg_match('#(\<script id\="__NEXT_DATA__".*?\>)(.*?)(\</script\>)#',$resp['data'],$matches))
@@ -245,7 +249,11 @@ function imdbData($imdbID)
         #file_put_contents('./cache/nextdata.json', $matches[2]);  // write json data to file
         $json_data = json_decode($matches[2],true);
         #file_put_contents('./cache/nextdata-decoded.json', print_r($json_data, true));  // write formated json data to file
-    } 
+    }
+    else
+    {
+        $json_data = null;
+    }
 
     // add encoding
     $data['encoding'] = $resp['encoding'];
@@ -262,22 +270,25 @@ function imdbData($imdbID)
     // Titles and Year
     // See for different formats. https://contribute.imdb.com/updates/guide/title_formats
     if ($data['istv']) {
-        if (preg_match('/<title>&quot;(.+?)&quot;(.+?)\(TV Episode (\d+)\) - IMDb<\/title>/si', $resp['data'], $ary)) {
-            # handles one episode of a TV serie
-            $data['title'] = trim($ary[1]);
+        # TV Episode
+        if (preg_match('/<title>"(.+?)"\s+(.+?)\(TV Episode (\d{4})\) - IMDb<\/title>/si', $resp['data'], $ary)) {
+
+            $data['title']    = trim($ary[1]);
             $data['subtitle'] = trim($ary[2]);
-            $data['year'] = $ary[3];
-        } else if (preg_match('/<title>(.+?)\(TV (?:Series|Mini-Series) (\d+).+?\) - IMDb<\/title>/si', $resp['data'], $ary)) {
-            # handles a TV series.
-            # split title - subtitle
+            $data['year']     = $ary[3];
+
+        }
+        # TV Series / Mini-Series
+        else if (preg_match('/<title>(.+?)\(TV (?:Series|Mini-Series) (\d+).+?\) - IMDb<\/title>/si', $resp['data'], $ary)) {
+
             list($t, $s) = explode(' - ', $ary[1], 2);
             # no dash, lets try colon
             if ($s == false) {
                 list($t, $s) = explode(': ', $ary[1], 2);
             }
-            $data['title'] = trim($t);
+            $data['title']    = trim($t);
             $data['subtitle'] = trim($s);
-            $data['year'] = trim($ary[2]);
+            $data['year']     = trim($ary[2]);
         }
     } else {
         preg_match('/<title>(.+?)\(.*?(\d+)\).+?<\/title>/si', $resp['data'], $ary);
@@ -391,14 +402,19 @@ function imdbData($imdbID)
     }
 
     // Plot
-    if (array_key_exists('plainText', $json_data["props"]["pageProps"]["aboveTheFoldData"]["plot"]["plotText"]) )
+    $plotText = $json_data["props"]["pageProps"]["aboveTheFoldData"]["plot"]["plotText"]["plainText"] ?? null;
+    if ($plotText !== null)
     {
-        $data['plot'] = stripslashes($json_data["props"]["pageProps"]["aboveTheFoldData"]["plot"]["plotText"]["plainText"]);
+        $data['plot'] = stripslashes($plotText);
     }
     
     // Fetch credits
     $resp = imdbFixEncoding($data, httpClient($imdbServer.'/title/tt'.$imdbID.'/fullcredits', $cache));
-    if (!$resp['success']) $CLIENTERROR .= $resp['error']."\n";
+    if (!$resp['success']) 
+    {
+        $CLIENTERROR .= $resp['error']."\n";
+        dlog("get cast error: ".$resp['error']);
+    }
 
     // Cast
     // Directors

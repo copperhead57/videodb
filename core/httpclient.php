@@ -159,7 +159,9 @@ function httpClient($url, $cache = false, $para = null, $reload = false)
     if (empty($requestConfig['headers']['User-Agent'])) $requestConfig['headers']['User-Agent'] = filter_input(INPUT_SERVER, 'HTTP_USER_AGENT');
     if (empty($requestConfig['headers']['Referer'])) $requestConfig['headers']['Referer'] = $referer;
 
+    #dlog(date("Y-m-d")." T".date("H-i-s")." - Guzzle: Before: url:".$url);
     $resp = $client->request($method, $url, $requestConfig);
+    #dlog(date("Y-m-d")." T".date("H-i-s")." - Guzzle: After: url:".$url);
 
     $response['error'] = '';
     $response['url'] = $url;
@@ -168,33 +170,81 @@ function httpClient($url, $cache = false, $para = null, $reload = false)
     $response['header'] = $resp->getHeaders();
     $response['data'] = (string) $resp->getBody();
 
-    if ($config['debug']) echoHeaders($response['header'])."<p>";
-    if ($config['debug']) echo "data:<br>".htmlspecialchars($response['data'])."<p>";
+    //* Commented out as to stop header already sent error
+    //if ($config['debug']) echoHeaders($response['header'])."<p>";
+    //if ($config['debug']) echo "data:<br>".htmlspecialchars($response['data'])."<p>";
 
-    
+    $status = $resp->getStatusCode();    
     // log response
     if ($config['httpclientlog'])
     {
         $log = fopen('httpClient.log', 'a');
+        $logTime = date('Y-m-d H:i:s') . '.' . explode(' ', microtime())[1];
+        fwrite($log, "****** {$logTime} - Guzzle: url: {$url} Status: {$status}");
         fwrite($log, headers_to_string($response['header']));
         fclose($log);
     }
 
-    // verify status code
-    if ($resp->getStatusCode() != 200)
+    if ($config['debug'])
     {
-        $response['error'] = 'Server returned wrong status: ' . $resp->getStatusCode();
-        $response['error'] .= " Reason: " . $resp->getReasonPhrase();
-        return $response;
+        $logTime = date('Y-m-d H:i:s') . '.' . explode(' ', microtime())[1];
+        dlog("******* {$logTime} - Guzzle: url: {$url} Status: {$status}");
     }
+    
+    // verify status code
+    switch ($status)
+    {
+        case 200:
+            $response['success'] = true;
+            $response['source'] = "guzzle";
+            break;
 
-    $response['success'] = true;
+        case 202:
+            // AWS WAF challenge → Playwright fallback
+            $pw = runPlaywright($url);
+            
+            if (!$pw['ok']) 
+            {
+                $response = [
+                    'error'   => 'Playwright failed: ' . $pw['error'],
+                    'url'     => $url,
+                    'success' => false,
+                    'source'  => 'playwright-error'
+                ];
+            } 
+            else 
+            {
+                $response = [
+                 'error'    => '',
+                 'url'      => $url,
+                 'success'  => true,
+                 'encoding' => 'UTF-8',
+                 'header'   => [],
+                 'data'     => $pw['html'],
+                 'wafChallengeDetected' => $pw['wafDetected'],
+             //    'wafSolved' => $pw['wafSolved'],
+                 'source'   => 'playwright'
+                ];
+            }
+            break;
+
+        default:
+            $response = [
+                'error'   => 'Server returned wrong status: ' . $status .
+                             ' Reason: ' . $resp->getReasonPhrase(),
+                'url'     => $url,
+                'success' => false,
+                'source'  => 'guzzle-error'
+            ];
+            break;
+    }
+    
     // @todo i'm not sure on the side-effects of setting the previous requested URL as referer
     //        for the next, so disabled for now. might be something to investigate...
     //$referer = $url;
 
     // commit successful request to cache
-    if ($cache)
+    if ($cache && $response['success'])
     {
         putHTTPcache($url.$post, $response);
     }
@@ -241,6 +291,300 @@ function download($url, $local)
     }
 
     return(@file_put_contents($local, $resp['data']) !== false);
+}
+
+function detectEnvironment(): string
+{
+    // 1. Windows
+    if (stripos(PHP_OS_FAMILY, 'Windows') !== false) 
+    {
+        return 'windows';
+    }
+
+    // 2. macOS
+    if (PHP_OS_FAMILY === 'Darwin') 
+    {
+        return 'mac';
+    }
+
+    // 3. Linux
+    if (PHP_OS_FAMILY === 'Linux') 
+    {
+        // Detect NAS (Synology, QNAP, TrueNAS)
+        $isNas = file_exists('/etc.defaults/VERSION')       // Synology
+              || file_exists('/etc/config/uLinux.conf')    // QNAP
+              || file_exists('/etc/truenas-version');      // TrueNAS SCALE
+
+        if ($isNas) 
+        {
+            $arch = php_uname('m');
+            if (stripos($arch, 'aarch64') !== false) return 'linux-nas-arm64';
+            if (stripos($arch, 'x86_64') !== false) return 'linux-nas-intel';
+            return 'linux-nas-unknown';
+        }
+
+        // Detect webserver user (PHP reports file owner, not Apache worker)
+        $user = get_current_user();
+
+        // Detect actual Apache worker user (System Apache or XAMPP)
+        $apacheUser = trim(shell_exec("ps -eo user,args | awk '/apache2|httpd/ && !/grep/ && \$1!=\"root\" {print \$1; exit}'"));
+
+        // XAMPP detection:
+        // Must be installed AND running (daemon)
+        if (file_exists('/opt/lampp') && $apacheUser === 'daemon') 
+        {
+            return 'linux-apache-lampp';
+        }
+
+        // Debian/Ubuntu/Mint system Apache
+        if ($user === 'www-data' || $apacheUser === 'www-data') 
+        {
+            return 'linux-apache-system';
+        }
+
+        // RedHat/CentOS/Fedora
+        if ($user === 'apache' || $apacheUser === 'apache') 
+        {
+            return 'linux-apache-redhat';
+        }
+
+        // Arch/Manjaro
+        if ($user === 'http' || $apacheUser === 'http') 
+        {
+            return 'linux-apache-arch';
+        }
+
+        // Fallback
+        return 'linux-unknown';
+    }
+
+    return 'unknown';
+}
+
+function runPlaywright(string $url): array
+{
+    global $config;
+
+    // Generate per-request log ID used in pwlog
+    $logId = substr(md5(microtime(true) . rand()), 0, 8);
+
+    // ENVIRONMENT DETECTION FIRST
+    $env = detectEnvironment();
+
+    // Acquire lock only for non-NAS
+    $lock = null;
+    $isNas = in_array($env, ['linux-nas-arm64', 'linux-nas-intel'], true);
+
+    if (!$isNas) {
+        $lock = playwrightLock_acquire($env, $url);
+        if ($lock === false) {
+            $pwlog("timeout: $url", $logId);
+            return [
+                'ok'    => false,
+                'error' => 'Playwright-timeout: ' . $url,
+                'cmd'   => null
+            ];
+        }
+    }
+
+    // *** ALL LOGGING NOW INSIDE LOCK WINDOW ***
+    pwlog("**************", $logId);
+    $logTime = date('Y-m-d H:i:s') . '.' . explode(' ', microtime())[1];
+    pwlog("$logTime - Start runPlaywright: $url", $logId);
+    pwlog("detectedEnvironment: $env", $logId);
+
+    // COMMAND BUILDING
+    $path = './lib/playwright';
+    $cmd  = null;
+
+    switch ($env) {
+
+        case 'windows':
+            $node   = escapeshellarg("$path/win/node/node.exe");
+            $script = escapeshellarg("$path/win/imdb-fetch-win-headed.mjs");
+            $cmd = "cmd /C set \"PLAYWRIGHT_BROWSERS_PATH=$path/win/pw/node_modules/playwright-core/.local-browsers\" && $node $script " . escapeshellarg($url);
+            break;
+
+        // macOS (placeholder) - linux install may work
+        case 'mac':
+        case 'mac-arm':
+        case 'mac-intel':
+            break;
+
+        // LINUX (new architecture: wrapper + sudo → apache user)
+        case 'linux-apache-system':
+        case 'linux-apache-lampp':
+            $playroot = "$path/linux";
+            $wrapper  = realpath("$playroot/imdb-fetch-linux-headless.sh");
+            $runUser  = get_current_user();
+            $cmd = "/usr/bin/sudo -n -u $runUser $wrapper " . escapeshellarg($url);
+            break;
+
+        case 'linux-nas-arm64':
+        case 'linux-nas-intel':
+            $script = escapeshellarg("$path/linux-nas-arm64/imdb-fetch-linux-nas-headless.js");
+            $cmd = "node $script " . escapeshellarg($url);
+            break;
+
+        default:
+            if ($lock) playwrightLock_release($lock);
+            return [
+                'ok'    => false,
+                'error' => 'Unsupported environment: ' . $env,
+                'cmd'   => null
+            ];
+    }
+
+    pwlog("cmd: $cmd", $logId);
+
+    // EXECUTE (inside lock)
+    $output = shell_exec($cmd . " 2>&1");
+
+    // RELEASE LOCK IMMEDIATELY AFTER PLAYWRIGHT FINISHES
+    if ($lock) {
+        playwrightLock_release($env, $lock);
+    }
+
+    // NO OUTPUT
+    if (!$output) {
+        pwlog("No output from Playwright", $logId);
+        return [
+            'ok'    => false,
+            'error' => 'No output from Playwright',
+            'cmd'   => $cmd
+        ];
+    }
+
+    /// Split into lines
+    $lines = explode("\n", (string)$output);
+
+    // Remove trailing empty lines only
+    while (count($lines) > 1 && trim(end($lines)) === '') {
+        array_pop($lines);
+    }
+
+    // Last non-empty line is JSON
+    $jsonLine = trim(end($lines));
+
+    // LOG WRAPPER OUTPUT (outside lock)
+    pwlog("Start Playwright Output", $logId);
+
+    // Print all lines except the last one
+    for ($i = 0; $i < count($lines) - 1; $i++) {
+        pwlog(trim($lines[$i]), $logId);
+    }
+
+    // Truncate JSON for preview
+    $max = 500;
+    $jsonPreview = strlen($jsonLine) > $max
+        ? substr($jsonLine, 0, $max) . "... [truncated]"
+        : $jsonLine;
+
+    pwlog("JSON: $jsonPreview", $logId);
+    pwlog("End Playwright Output", $logId);
+
+    // Decode JSON
+    $json = json_decode($jsonLine, true);
+
+    if (!is_array($json)) {
+        pwlog("Invalid JSON", $logId);
+        return [
+            'ok'    => false,
+            'error' => 'Invalid JSON from Playwright',
+            'raw'   => $output,
+            'cmd'   => $cmd
+        ];
+    }
+
+    return $json;
+}
+
+function playwrightLock_acquire($env, $url)
+{
+    global $config;
+
+    // NAS mode → skip locking entirely
+    if (in_array($env, ['linux-nas-arm64', 'linux-nas-intel'], true)) {
+        return true;
+    }
+
+    $maxAgeSeconds = 300;
+    $maxWait       = 240;
+
+    $lockFile = "./cache/locks/imdb_playwright_fetch.lock";
+    $dir = dirname($lockFile);
+
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0777, true);
+    }
+
+    $lock = fopen($lockFile, "c+");
+    if (!$lock) {
+        pwlog("playwrightLock_acquire: cannot open lock file: $url", $logId);
+        return false;
+    }
+
+    $waited = 0;
+
+    while (!flock($lock, LOCK_EX | LOCK_NB)) {
+
+        clearstatcache(true, $lockFile);
+        $mtime = @filemtime($lockFile) ?: time();
+
+        if (time() - $mtime > $maxAgeSeconds) {
+            flock($lock, LOCK_EX);
+            ftruncate($lock, 0);
+            fwrite($lock, (string)time());
+            fflush($lock);
+            pwlog("playwrightLock_acquire: stale lock reset after $waited sec: $url", $logId);
+            return $lock;
+        }
+
+        sleep(1);
+        $waited++;
+
+        if ($waited >= $maxWait) {
+            fclose($lock);
+            pwlog("playwrightLock_acquire: timeout after $waited sec: $url", $logId);
+            return false;
+        }
+    }
+
+    ftruncate($lock, 0);
+    fwrite($lock, (string)time());
+    fflush($lock);
+
+    if ($waited > 0) {
+        pwlog("playwrightLock_acquire: waited $waited sec: $url", $logId);
+    }
+
+    return $lock;
+}
+
+function playwrightLock_release($env, $lock)
+{
+    global $config;
+
+    // NAS mode → no lock to release
+    if (in_array($env, ['linux-nas-arm64', 'linux-nas-intel'], true)) {
+        return;
+    }
+
+    if ($lock) {
+        flock($lock, LOCK_UN);
+        fclose($lock);
+    }
+}
+
+function pwlog($msg, $logId) 
+{
+    // Local logging wrapper (does NOT modify global dlog)
+    global $config;
+    
+    if ($config['playwright'])
+    {
+        dlog("[PW:$logId] $msg");
+    }
 }
 
 ?>
