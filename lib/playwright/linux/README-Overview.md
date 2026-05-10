@@ -10,8 +10,8 @@ This document describes the architecture, design principles, and execution model
 
 lib/playwright/
     linux/
-        imdb-fetch-headless.sh          ← Wrapper (Apache → sudo → pdb → Node)
-        imdb-fetch-unix-headless.mjs    ← Dedicated Playwright fetcher (Node)
+        imdb-fetch-linux-headless.sh          ← Wrapper (Apache → sudo → pdb → Node)
+        imdb-fetch-linux-headless.mjs    ← Dedicated Playwright fetcher (Node)
 
         node_modules/                   ← Playwright + dependencies
             playwright/

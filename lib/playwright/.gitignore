@@ -5,10 +5,7 @@
 # Browser binaries (HUGE — never commit)
 **/.local-browsers/
 
-# Browser binaries (HUGE — never commit)
-**/package-lock.json
-
-# Playwright downloaded archives (windows)
+# Playwright downloaded archives
 **/playwright*.zip
 
 ########################################
@@ -17,19 +14,33 @@
 **/node_modules/
 
 ########################################
-# Portable Node Runtimes
+# Playwright Lockfiles (per‑platform)
 ########################################
+unix/package-lock.json
+linux-nas-arm64/package-lock.json
+win/pw/package-lock.json
 
-# Windows portable Node
-win/node.exe
-win/npm.cmd
-win/npx.cmd
+########################################
+# Portable Node Runtimes (Windows)
+########################################
+win/node/
 
-# Synology-specific node_modules
-synology/node_modules/
+########################################
+# Persistent Browser Profiles (Windows)
+########################################
+win/chrome-profile/
 
-# LINUX spewcific files 
-**/playwright-env.sh
+########################################
+# Playwright Environment (Windows)
+########################################
+win/pw/node_modules/
+
+########################################
+# Linux / Synology specific
+########################################
+unix/playwright-env.sh
+linux-nas-arm64/node_modules/
+linux-nas-arm64/package-lock.json
 
 ########################################
 # ZIP files inside Playwright folders
@@ -41,14 +52,6 @@ synology/node_modules/
 ########################################
 trace.zip
 *.log
-
-########################################
-# Persistent Browser Profiles
-########################################
-**/chrome-profile/
-**/chrome-profile*/
-**/chrome-home/
-**/chrome-home*/
 
 ########################################
 # OS Junk

@@ -64,7 +64,7 @@ else
     else
         echo "  No Tier‑2 sudoers remain → using wrapper owner as fallback"
 
-        WRAPPER="${PLAYROOT}/imdb-fetch-headless.sh"
+        WRAPPER="${PLAYROOT}/imdb-fetch-linux-headless.sh"
 
         if [[ -f "$WRAPPER" ]]; then
             DESKTOP_USER="$(stat -c "%U" "$WRAPPER")"
@@ -212,8 +212,8 @@ echo
 # ------------------------------------------------------------
 echo "-- Wrapper script permissions --"
 
-WRAPPER="${PLAYROOT}/imdb-fetch-headless.sh"
-FETCHER="${PLAYROOT}/imdb-fetch-unix-headless.mjs"
+WRAPPER="${PLAYROOT}/imdb-fetch-linux-headless.sh"
+FETCHER="${PLAYROOT}/imdb-fetch-linux-headless.mjs"
 
 EXPECT_OWNER="$DESKTOP_USER"
 EXPECT_GROUP="$DESKTOP_USER"

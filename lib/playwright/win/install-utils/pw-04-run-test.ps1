@@ -2,7 +2,13 @@ param(
     [string]$url = "https://www.imdb.com/title/tt0133093/"
 )
 
-Write-Host "Launching Chromium test using imdb-fetch-win.mjs..."
+# Enable ANSI escape sequences in this PowerShell session
+#$env:TERM = "xterm"
+
+# Load portable environment config
+. "$PSScriptRoot\config.ps1"
+
+Write-Host "Launching Chromium test using imdb-fetch-win-headed.mjs..."
 Write-Host "URL: $url"
 Write-Host ""
 
@@ -19,7 +25,6 @@ Write-Host "$red#                                             #$reset"
 Write-Host "$red###############################################$reset"
 Write-Host ""
 
-# === Press any key to continue ===
 Write-Host "Press any key to continue..." -NoNewline
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 Write-Host ""
@@ -27,8 +32,8 @@ Write-Host ""
 
 # --- Start process and capture both streams ---
 $psi = New-Object System.Diagnostics.ProcessStartInfo
-$psi.FileName = "$PSScriptRoot\node.exe"
-$psi.Arguments = "`"$PSScriptRoot\imdb-fetch-headed.mjs`" `"$url`""
+$psi.FileName = $nodeExe
+$psi.Arguments = "`"$root\imdb-fetch-win-headed.mjs`" `"$url`""
 $psi.RedirectStandardOutput = $true
 $psi.RedirectStandardError  = $true
 $psi.UseShellExecute = $false

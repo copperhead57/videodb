@@ -202,25 +202,28 @@ function httpClient($url, $cache = false, $para = null, $reload = false)
         case 202:
             // AWS WAF challenge → Playwright fallback
             $pw = runPlaywright($url);
-
-            if (!$pw['ok']) {
+            
+            if (!$pw['ok']) 
+            {
                 $response = [
                     'error'   => 'Playwright failed: ' . $pw['error'],
                     'url'     => $url,
                     'success' => false,
                     'source'  => 'playwright-error'
                 ];
-            } else {
+            } 
+            else 
+            {
                 $response = [
-                    'error'    => '',
-                    'url'      => $url,
-                    'success'  => true,
-                    'encoding' => 'UTF-8',
-                    'header'   => [],
-                    'data'     => $pw['html'],
-                    'wafChallengeDetected' => $pw['wafDetected'],
-                //    'wafSolved' => $pw['wafSolved'],
-                    'source'   => 'playwright'
+                 'error'    => '',
+                 'url'      => $url,
+                 'success'  => true,
+                 'encoding' => 'UTF-8',
+                 'header'   => [],
+                 'data'     => $pw['html'],
+                 'wafChallengeDetected' => $pw['wafDetected'],
+             //    'wafSolved' => $pw['wafSolved'],
+                 'source'   => 'playwright'
                 ];
             }
             break;
@@ -362,41 +365,44 @@ function runPlaywright(string $url): array
 {
     global $config;
 
-    $debug_playwright = 1;
+    // Generate per-request log ID used in pwlog
+    $logId = substr(md5(microtime(true) . rand()), 0, 8);
 
-    // LOCKING FOR QUEUING CALLS TO PLAYWRIGHT
-    $lock = null;
-    $lock = playwrightLock_acquire();
-    if ($lock === false)
-    {
-        return ['ok'    => false,
-                'error' => 'Playwright-timeout: ' . $url,
-                'cmd'   => null
-               ];
-    }
-
-    // ENVIRONMENT DETECTION
+    // ENVIRONMENT DETECTION FIRST
     $env = detectEnvironment();
 
-    if ($config['debug'] || $debug_playwright) {
-        dlog("**************");
-        dlog("runPlaywright:detectedEnvironment: " . $env);
+    // Acquire lock only for non-NAS
+    $lock = null;
+    $isNas = in_array($env, ['linux-nas-arm64', 'linux-nas-intel'], true);
+
+    if (!$isNas) {
+        $lock = playwrightLock_acquire($env, $url);
+        if ($lock === false) {
+            $pwlog("timeout: $url", $logId);
+            return [
+                'ok'    => false,
+                'error' => 'Playwright-timeout: ' . $url,
+                'cmd'   => null
+            ];
+        }
     }
 
+    // *** ALL LOGGING NOW INSIDE LOCK WINDOW ***
+    pwlog("**************", $logId);
+    $logTime = date('Y-m-d H:i:s') . '.' . explode(' ', microtime())[1];
+    pwlog("$logTime - Start runPlaywright: $url", $logId);
+    pwlog("detectedEnvironment: $env", $logId);
+
+    // COMMAND BUILDING
     $path = './lib/playwright';
     $cmd  = null;
 
-    switch ($env) 
-    {
-        // WINDOWS
-        case 'windows':
-            $node   = escapeshellarg("$path/win/node.exe");
-            $script = escapeshellarg("$path/win/imdb-fetch-headed.mjs");
+    switch ($env) {
 
-            $cmd =
-                "cmd /C " .
-                "set \"PLAYWRIGHT_BROWSERS_PATH=$path/win/node_modules/playwright-core/.local-browsers\" && " .
-                "$node $script " . escapeshellarg($url);
+        case 'windows':
+            $node   = escapeshellarg("$path/win/node/node.exe");
+            $script = escapeshellarg("$path/win/imdb-fetch-win-headed.mjs");
+            $cmd = "cmd /C set \"PLAYWRIGHT_BROWSERS_PATH=$path/win/pw/node_modules/playwright-core/.local-browsers\" && $node $script " . escapeshellarg($url);
             break;
 
         // macOS (placeholder) - linux install may work
@@ -409,23 +415,19 @@ function runPlaywright(string $url): array
         case 'linux-apache-system':
         case 'linux-apache-lampp':
             $playroot = "$path/linux";
-            $wrapper = realpath("$playroot/imdb-fetch-headless.sh");
-            $urlArg   = escapeshellarg($url);
-            // Map environment → Apache user (must match sudoers)
-            $runUser = get_current_user(); 
-
-            $cmd = '/usr/bin/sudo -n -u ' . $runUser . " $wrapper $urlArg";
+            $wrapper  = realpath("$playroot/imdb-fetch-linux-headless.sh");
+            $runUser  = get_current_user();
+            $cmd = "/usr/bin/sudo -n -u $runUser $wrapper " . escapeshellarg($url);
             break;
 
-        // NAS
         case 'linux-nas-arm64':
         case 'linux-nas-intel':
-            $script = escapeshellarg("$path/linux-nas-arm64/imdb-fetch.js");
+            $script = escapeshellarg("$path/linux-nas-arm64/imdb-fetch-linux-nas-headless.js");
             $cmd = "node $script " . escapeshellarg($url);
             break;
 
-        // Unsupported
         default:
+            if ($lock) playwrightLock_release($lock);
             return [
                 'ok'    => false,
                 'error' => 'Unsupported environment: ' . $env,
@@ -433,43 +435,19 @@ function runPlaywright(string $url): array
             ];
     }
 
-    // EXECUTION
-    if ($config['debug'] || $debug_playwright) {
-        dlog("runPlaywright:cmd:" . $cmd);
-    }
+    pwlog("cmd: $cmd", $logId);
 
-    // Capture stdout + stderr
+    // EXECUTE (inside lock)
     $output = shell_exec($cmd . " 2>&1");
 
-    // DEBUG OUTPUT
-    if ($config['debug'] || $debug_playwright) {
-        dlog("runPlaywright:Start Playwright Output");
-        $lines = explode("\n", (string)$output);
-        while (count($lines) > 1 && trim(end($lines)) === '') {
-            array_pop($lines);
-        }
-        // The last non-empty line is JSON
-        $jsonLine = trim(end($lines));
-        // Print all lines EXCEPT the last one (wrapper logs)
-        for ($i = 0; $i < count($lines) - 1; $i++) 
-        {
-            dlog($lines[$i]);
-        }
-        // Truncate JSON if too long
-        $max = 500;
-        if (strlen($jsonLine) > $max) 
-        {
-            $jsonLine = substr($jsonLine, 0, $max) . "... [truncated]";
-        }
-        dlog("JSON: " . $jsonLine);
-        dlog("runPlaywright:End Playwright Output");
+    // RELEASE LOCK IMMEDIATELY AFTER PLAYWRIGHT FINISHES
+    if ($lock) {
+        playwrightLock_release($env, $lock);
     }
 
-    // RELEASE LOCK
-    playwrightLock_release($lock);
-
-    // PARSE JSON
+    // NO OUTPUT
     if (!$output) {
+        pwlog("No output from Playwright", $logId);
         return [
             'ok'    => false,
             'error' => 'No output from Playwright',
@@ -477,18 +455,39 @@ function runPlaywright(string $url): array
         ];
     }
 
-    $lines = explode("\n", $output);
-    // remove *only* empty lines at the end, not in the middle
-    while (count($lines) > 1 && trim(end($lines)) === '') 
-    {
+    /// Split into lines
+    $lines = explode("\n", (string)$output);
+
+    // Remove trailing empty lines only
+    while (count($lines) > 1 && trim(end($lines)) === '') {
         array_pop($lines);
     }
-    $lastLine = trim(end($lines));
 
-    $json = json_decode($lastLine, true);
+    // Last non-empty line is JSON
+    $jsonLine = trim(end($lines));
 
-    if (!is_array($json)) 
-    {
+    // LOG WRAPPER OUTPUT (outside lock)
+    pwlog("Start Playwright Output", $logId);
+
+    // Print all lines except the last one
+    for ($i = 0; $i < count($lines) - 1; $i++) {
+        pwlog(trim($lines[$i]), $logId);
+    }
+
+    // Truncate JSON for preview
+    $max = 500;
+    $jsonPreview = strlen($jsonLine) > $max
+        ? substr($jsonLine, 0, $max) . "... [truncated]"
+        : $jsonLine;
+
+    pwlog("JSON: $jsonPreview", $logId);
+    pwlog("End Playwright Output", $logId);
+
+    // Decode JSON
+    $json = json_decode($jsonLine, true);
+
+    if (!is_array($json)) {
+        pwlog("Invalid JSON", $logId);
         return [
             'ok'    => false,
             'error' => 'Invalid JSON from Playwright',
@@ -500,73 +499,91 @@ function runPlaywright(string $url): array
     return $json;
 }
 
-function playwrightLock_acquire(int $maxAgeSeconds = 300,   // 5 minutes
-                                int $maxWait = 120          // 2 minutes
-                               ) 
+function playwrightLock_acquire($env, $url)
 {
-    $lockFile = "./cache/locks/imdb_playwright_fetch.lock";
+    global $config;
 
-    if (!is_dir(dirname($lockFile))) 
-    {
-        @mkdir(dirname($lockFile), 0777, true);
+    // NAS mode → skip locking entirely
+    if (in_array($env, ['linux-nas-arm64', 'linux-nas-intel'], true)) {
+        return true;
+    }
+
+    $maxAgeSeconds = 300;
+    $maxWait       = 240;
+
+    $lockFile = "./cache/locks/imdb_playwright_fetch.lock";
+    $dir = dirname($lockFile);
+
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0777, true);
     }
 
     $lock = fopen($lockFile, "c+");
-    if (!$lock) 
-    {
+    if (!$lock) {
+        pwlog("playwrightLock_acquire: cannot open lock file: $url", $logId);
         return false;
-    }
-
-    // Check stale lock before acquiring
-    $stat  = fstat($lock);
-    $mtime = $stat['mtime'] ?? time();
-
-    if (time() - $mtime > $maxAgeSeconds) 
-    {
-        // Stale → reset
-        ftruncate($lock, 0);
     }
 
     $waited = 0;
 
-    while (!flock($lock, LOCK_EX | LOCK_NB)) 
-    {
-        // Re-check stale while waiting
-        clearstatcache(true, $lockFile);
-        $fileMtime = filemtime($lockFile);
+    while (!flock($lock, LOCK_EX | LOCK_NB)) {
 
-        if (time() - $fileMtime > $maxAgeSeconds) 
-        {
-            // Force acquire stale lock
+        clearstatcache(true, $lockFile);
+        $mtime = @filemtime($lockFile) ?: time();
+
+        if (time() - $mtime > $maxAgeSeconds) {
             flock($lock, LOCK_EX);
             ftruncate($lock, 0);
-            break;
+            fwrite($lock, (string)time());
+            fflush($lock);
+            pwlog("playwrightLock_acquire: stale lock reset after $waited sec: $url", $logId);
+            return $lock;
         }
 
         sleep(1);
         $waited++;
 
-        if ($waited >= $maxWait) 
-        {
+        if ($waited >= $maxWait) {
             fclose($lock);
+            pwlog("playwrightLock_acquire: timeout after $waited sec: $url", $logId);
             return false;
         }
     }
 
-    // Update timestamp to show active lock
     ftruncate($lock, 0);
     fwrite($lock, (string)time());
     fflush($lock);
 
+    if ($waited > 0) {
+        pwlog("playwrightLock_acquire: waited $waited sec: $url", $logId);
+    }
+
     return $lock;
 }
 
-function playwrightLock_release($lock)
+function playwrightLock_release($env, $lock)
 {
-    if ($lock) 
-    {
+    global $config;
+
+    // NAS mode → no lock to release
+    if (in_array($env, ['linux-nas-arm64', 'linux-nas-intel'], true)) {
+        return;
+    }
+
+    if ($lock) {
         flock($lock, LOCK_UN);
         fclose($lock);
+    }
+}
+
+function pwlog($msg, $logId) 
+{
+    // Local logging wrapper (does NOT modify global dlog)
+    global $config;
+    
+    if ($config['playwright'])
+    {
+        dlog("[PW:$logId] $msg");
     }
 }
 

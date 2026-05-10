@@ -102,11 +102,11 @@ Verification should fail if Playwright is still installed (expected).
 
 Under Apache (via sudoers):
 
-    ./imdb-fetch-headless.sh "<url>"
+    ./imdb-fetch-linux-headless.sh "<url>"
 
 From a normal shell:
 
-    node imdb-fetch-unix-headless.mjs "<url>"
+    node imdb-fetch-linux-headless.mjs "<url>"
 
 --------------------------------------------------------------------------------
 📦 Installation Summary
