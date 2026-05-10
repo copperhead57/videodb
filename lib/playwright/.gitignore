@@ -38,7 +38,7 @@ win/pw/node_modules/
 ########################################
 # Linux / Synology specific
 ########################################
-unix/playwright-env.sh
+linux/playwright-env.sh
 linux-nas-arm64/node_modules/
 linux-nas-arm64/package-lock.json
 
