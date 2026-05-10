@@ -1,10 +1,10 @@
 #!/bin/bash
 # Wrapper for running the headless Playwright fetcher as user
 
-echo "Fetcher Wrapper: imdb-fetch-headless.sh"
+echo "Fetcher Wrapper: imdb-fetch-linux-headless.sh"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-FETCHER="$SCRIPT_DIR/imdb-fetch-unix-headless.mjs"
+FETCHER="$SCRIPT_DIR/imdb-fetch-linux-headless.mjs"
 
 # Use system-install mode (this is what you had when it worked)
 export PLAYWRIGHT_BROWSERS_PATH=0

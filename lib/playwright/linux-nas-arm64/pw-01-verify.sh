@@ -1,8 +1,7 @@
 #!/bin/bash
 # ============================================================
 # pw-01-verify.sh
-# Verify NAS Playwright Environment (v1.58.x)
-# Includes Docker socket permission check
+# Verify NAS Playwright Environment (Dynamic Version-Aware)
 # ============================================================
 
 echo "=== Verifying NAS Playwright Environment ==="
@@ -50,20 +49,53 @@ fi
 # ------------------------------------------------------------
 # Check Playwright Node library
 # ------------------------------------------------------------
-if [ -d "$PLAYWRIGHT_DIR/node_modules/playwright" ]; then
-    echo "[OK] Playwright Node library installed"
+PW_PKG="$PLAYWRIGHT_DIR/node_modules/playwright/package.json"
+
+if [ -f "$PW_PKG" ]; then
+    INSTALLED_VERSION=$(node -p "require('$PW_PKG').version")
+    echo "[OK] Playwright Node library installed: v$INSTALLED_VERSION"
 else
     echo "[FAIL] Playwright Node library missing"
+    INSTALLED_VERSION=""
 fi
 
 # ------------------------------------------------------------
-# Check Playwright Docker image
+# List all Playwright Docker images
 # ------------------------------------------------------------
-if docker images | grep -q "mcr.microsoft.com/playwright.*v1.58.2-jammy"; then
-    echo "[OK] Playwright Docker image present"
+echo ""
+echo "[INFO] Available Playwright Docker images:"
+docker images | grep "mcr.microsoft.com/playwright" || echo "  (none found)"
+echo ""
+
+# ------------------------------------------------------------
+# Check matching Docker image
+# ------------------------------------------------------------
+if [ -z "$INSTALLED_VERSION" ]; then
+    echo "[INFO] Skipping Docker image match check (Playwright not installed)"
 else
-    echo "[FAIL] Playwright Docker image missing"
+    if docker images | grep -q "mcr.microsoft.com/playwright.*v${INSTALLED_VERSION}-jammy"; then
+        echo "[OK] Matching Docker image found: v${INSTALLED_VERSION}-jammy"
+    else
+        echo "[FAIL] No matching Docker image for v${INSTALLED_VERSION}"
+    fi
 fi
+
+
+# ------------------------------------------------------------
+# Warn if multiple versions exist
+# ------------------------------------------------------------
+IMAGE_COUNT=$(docker images | grep -c "mcr.microsoft.com/playwright")
+
+if [ "$IMAGE_COUNT" -gt 1 ]; then
+    echo "[WARN] Multiple Playwright Docker images detected ($IMAGE_COUNT total)"
+
+    if [ -z "$INSTALLED_VERSION" ]; then
+        echo "       None will be used until Playwright is installed."
+    else
+        echo "       Only v${INSTALLED_VERSION}-jammy will be used by the app."
+    fi
+fi
+
 
 # ------------------------------------------------------------
 # Check Docker socket exists
@@ -101,4 +133,5 @@ else
     exit 1
 fi
 
+echo ""
 echo "=== Verification Complete ==="

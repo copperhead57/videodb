@@ -27,8 +27,8 @@ PROJECT_NAME="${PW_PROJECT_NAME}"
 # Paths to allowed commands
 # ------------------------------------------------------------
 NODE_BIN="/usr/bin/node"
-WRAPPER="${PW_PLAYROOT}/imdb-fetch-headless.sh"
-FETCHER="${PW_PLAYROOT}/imdb-fetch-unix-headless.mjs"
+WRAPPER="${PW_PLAYROOT}/imdb-fetch-linux-headless.sh"
+FETCHER="${PW_PLAYROOT}/imdb-fetch-linux-headless.mjs"
 
 # ------------------------------------------------------------
 # Tier-1 and Tier-2 sudoers paths

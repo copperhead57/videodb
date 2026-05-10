@@ -74,8 +74,8 @@ fi
 # ------------------------------------------------------------
 # Reset wrapper + fetcher to raw Git state (664, pdb:pdb)
 # ------------------------------------------------------------
-WRAPPER="${PLAYROOT}/imdb-fetch-headless.sh"
-FETCHER="${PLAYROOT}/imdb-fetch-unix-headless.mjs"
+WRAPPER="${PLAYROOT}/imdb-fetch-linux-headless.sh"
+FETCHER="${PLAYROOT}/imdb-fetch-linux-headless.mjs"
 
 echo
 echo "  - Resetting wrapper + fetcher to raw Git state (664 pdb:pdb)"

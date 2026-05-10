@@ -1,28 +1,58 @@
 #!/bin/bash
 # ============================================================
-# pw-02-install.sh
-# Install Playwright Node Library + Docker Image (v1.58.x)
+# Playwright Installer (Latest-Aware, Deterministic)
 # ============================================================
 
-echo "=== Installing Playwright 1.58.x for Synology ==="
+set -e
 
-# Resolve script directory (synology/)
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+echo "----------------------------------------"
+echo " Playwright Installer"
+echo "----------------------------------------"
 
-# Playwright directory is the script directory itself
-PLAYWRIGHT_DIR="$SCRIPT_DIR"
+# Read current version from package.json (strip caret)
+CURRENT_VERSION=$(node -p "require('./package.json').dependencies.playwright.replace('^','')")
+echo "Current package.json version: $CURRENT_VERSION"
 
-echo "[INFO] Script directory: $SCRIPT_DIR"
+# Get latest version from npm
+LATEST_VERSION=$(npm view playwright version)
+echo "Latest available version: $LATEST_VERSION"
+echo ""
 
-cd "$PLAYWRIGHT_DIR" || exit 1
+# Compare versions
+if [[ "$CURRENT_VERSION" == "$LATEST_VERSION" ]]; then
+    echo "✔ You already have the latest Playwright version."
+    PW_VERSION="$CURRENT_VERSION"
+else
+    echo "A newer Playwright version is available."
+    echo "  1) Keep current version ($CURRENT_VERSION)"
+    echo "  2) Upgrade to latest version ($LATEST_VERSION)"
+    echo ""
+    read -p "Enter choice (1 or 2): " CHOICE
 
+    if [[ "$CHOICE" == "1" ]]; then
+        PW_VERSION="$CURRENT_VERSION"
+        echo "✔ Keeping version: $PW_VERSION"
+    elif [[ "$CHOICE" == "2" ]]; then
+        PW_VERSION="$LATEST_VERSION"
+        echo "✔ Upgrading to: $PW_VERSION"
+    else
+        echo "Invalid choice"
+        exit 1
+    fi
+fi
+
+echo ""
 echo "--- Removing old node_modules ---"
 rm -rf node_modules package-lock.json
 
-echo "--- Installing Playwright 1.58.2 ---"
-npm install playwright@1.58.2
+echo "--- Installing Playwright $PW_VERSION ---"
+npm install "playwright@$PW_VERSION"
 
 echo "--- Pulling Docker Image (Jammy) ---"
-docker pull mcr.microsoft.com/playwright:v1.58.2-jammy
+docker pull "mcr.microsoft.com/playwright:v${PW_VERSION}-jammy"
 
-echo "=== Install Complete ==="
+echo ""
+echo "✔ Installation complete."
+echo "Playwright version installed: $PW_VERSION"
+echo "Docker image pulled: mcr.microsoft.com/playwright:v${PW_VERSION}-jammy"
+

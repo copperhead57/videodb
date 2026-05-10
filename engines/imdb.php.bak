@@ -240,7 +240,7 @@ function imdbData($imdbID)
     if (!$resp['success']) 
     {
         $CLIENTERROR .= $resp['error']."\n";
-        dlog("get mainpage error: ".$resp['error']);
+        dlog("get cast error: ".$resp['error']);
     }
 
     // extract json data from page

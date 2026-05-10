@@ -30,7 +30,7 @@ DESKTOP_USER="${PW_DESKTOP_USER}"
 PROJECT_ROOT="${PW_PROJECT_ROOT}"
 PROJECT_NAME="${PW_PROJECT_NAME}"
 BROWSER_ROOT="${PW_PLAYROOT}/node_modules/playwright-core/.local-browsers"
-FETCHER="${PW_PLAYROOT}/imdb-fetch-unix-headless.mjs"
+FETCHER="${PW_PLAYROOT}/imdb-fetch-linux-headless.mjs"
 
 GLOBAL_SUDOERS="/etc/sudoers.d/${DESKTOP_USER}-playwright"
 PROJECT_SUDOERS="/etc/sudoers.d/${DESKTOP_USER}-playwright-${PROJECT_NAME}-${PW_ENVIRONMENT}"
@@ -177,7 +177,7 @@ echo
 echo "[7] Fetcher Execution Test"
 
 FETCH_URL="https://www.imdb.com/title/tt0133093/"
-WRAPPER="$PLAYROOT/imdb-fetch-headless.sh"
+WRAPPER="$PLAYROOT/imdb-fetch-linux-headless.sh"
 
 CMD_STRING="sudo -n -u \"$DESKTOP_USER\" \"$WRAPPER\" \"$FETCH_URL\""
 

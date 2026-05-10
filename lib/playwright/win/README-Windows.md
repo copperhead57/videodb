@@ -211,10 +211,15 @@ If all items show **[OK]**, your environment is ready for installation.
 ------------------------------------------------------------
 
     win/
-      node.exe *
-      npm.cmd  *  
-      npx.cmd  *
-      node_modules/  *
+      node/
+        node_+modules/ *
+        node.exe *
+        npm.cmd  *  
+        npx.cmd  *
+      pw/
+        package-lock.json *
+        package.json
+        node_modules/  *
         .bin/
         playwright/
         playwright-core/
@@ -224,18 +229,20 @@ If all items show **[OK]**, your environment is ready for installation.
             chromium_headless_shell-xxxx/
             winldd-xxxx/
       chrome-profile/ %
-      package-lock.json *
-      pw-01a-install-node.ps1
-      pw-01b-install-playwright.ps1
-      pw-01-Installer.ps1
-      pw-02a-uninstall-node.ps1
-      pw-02b-uninstall-playwright.ps1
-      pw-02-uninstaller.ps1
-      pw-03-verify-install.ps1
-      pw-03-verify-uninstall.ps1
-      pw-04-run-test.ps1
-      imdb-fetch-headed.mjs
-      package.json
+      install-utils/
+        pw-01-install-node.ps1
+        pw-02-install-playwright.ps1
+        pw-03-verify-install.ps1
+        pw-04-run-test.ps1
+        pw-02a-uninstall-node.ps1
+        pw-02b-uninstall-playwright.ps1
+        pw-03-verify-uninstall.ps1
+      pw-Installer.ps1
+      pw-uninstaller.ps1
+      pw-verify-install.ps1
+      pw-run-test.ps1
+      pw-verify-uninstall.ps1
+      imdb-fetch-win-headed.mjs 
       README-Windows.md
 
       * installed not part of the git structure
@@ -254,7 +261,7 @@ Browser Path Guarantee (Do Not Break This)
 ------------------------------------------------------------
     Playwright must always find Chromium inside:
 
-        win/node_modules/playwright-core/.local-browsers/
+        win/pw/node_modules/playwright-core/.local-browsers/
 
     If this folder is missing or moved:
 

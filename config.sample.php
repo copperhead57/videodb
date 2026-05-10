@@ -64,6 +64,13 @@ $config['offline'] = 0;
 $config['debug'] = 0;
 
 /**
+ * Playwright options, set to 1 to enable playwright only debug logs
+ * Usually leave this at 0 (to keep videoDB fast)
+ * @default 0
+ */
+$config['playwright'] = 0;
+
+/**
  * HttpClient logging, is for debugging only
  * Usually leave this at 0 (to keep videoDB fast)
  * @default 0
