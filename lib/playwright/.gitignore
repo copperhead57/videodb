@@ -33,14 +33,17 @@ win/chrome-profile/
 ########################################
 # Playwright Environment (Windows)
 ########################################
-win/pw/node_modules/
+win/pw/
 
 ########################################
 # Linux / Synology specific
 ########################################
 linux/playwright-env.sh
+linux/package-lock.json
+linux/package.json
 linux-nas-arm64/node_modules/
 linux-nas-arm64/package-lock.json
+linux-nas-arm64/package.json
 
 ########################################
 # ZIP files inside Playwright folders
