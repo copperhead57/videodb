@@ -498,7 +498,14 @@ function fixup_javascript($html)
             $js_file_data = replace_javascript_lnkstop  ($js_file_data);
             $partfilename .= '-lnkstop';
         }    
-      
+
+        // for lnkints  links (interests)
+        if (strpos($js_file_data, '"data-testid":"interests"') !== false) 
+        {
+            $js_file_data = replace_javascript_lnksinterests  ($js_file_data);
+            $partfilename .= '-lnksints';
+        }
+        
         // for search result page
         $find_string = 'defaultMessage:"Exact matches"';
         $pattern = '#'.$find_string.'#';
@@ -668,6 +675,33 @@ function replace_javascript_addmovie ($js_file_data)
                                      $js_file_data);
     }
         
+    return $js_file_data; 
+}
+
+/**
+ * @param   string  $js_file_data   imdb supplied javascript
+ * @return  string  amended javascript.
+ */
+function replace_javascript_lnksinterests  ($js_file_data)
+{
+    global $uri, $iframe;
+    // allow for iframe templates
+    $iframe_val = '';
+    if ($iframe) $iframe_val = "&iframe=".$iframe;
+    
+    // interest lnks
+    $pattern = '#("data-testid":"interests".*?href:)(.*?href:)(.*?href:)#';
+    preg_match($pattern, $js_file_data, $matches);
+    unset($matches);
+    if (preg_match($pattern, $js_file_data, $matches))
+    {
+        $js_file_data = preg_replace($pattern,
+                                     $matches[1]."'?$iframe_val&videodburl=https://www.imdb.com"."'"."+"
+                                    .$matches[2]."'?$iframe_val&videodburl=https://www.imdb.com"."'"."+"
+                                    .$matches[3]."'?$iframe_val&videodburl=https://www.imdb.com"."'"."+",
+                                     $js_file_data);
+    }
+
     return $js_file_data; 
 }
 
@@ -1193,16 +1227,14 @@ function replace_javascript_lnkstop ($js_file_data)
     // allow for iframe templates
     $iframe_val = '';
     if ($iframe) $iframe_val = "&iframe=".$iframe;    
-
-    // do link to episode listing from episode main page
-    // find string TMD_Hero_EpisodeCount?.total||0),f=i({tconst:o??"",refSuffix
-    //             111111111111111111111111111111111112222222222222222222222222
-    $pattern = '#(TMD_Hero_EpisodeCount\?\.total\|\|0\),.\=)(.\(\{tconst\:.\?\?"",refSuffix)#';
+    
+    // link to episode listing from episode main page (top left side)
+    $pattern = '#TMD_Hero_EpisodeCount\?\.total.*?EPISODE_GUIDE.*?href:#';
     unset($matches);
     if (preg_match($pattern, $js_file_data, $matches))
     {
         $js_file_data = preg_replace($pattern,
-                                     $matches[1]."'"."?$iframe_val&videodburl=https://www.imdb.com"."'"."+".$matches[2],
+                                     $matches[0]."'"."?$iframe_val&videodburl=https://www.imdb.com"."'"."+",
                                      $js_file_data);
     }
     
@@ -1229,7 +1261,6 @@ function replace_javascript_lnkstop ($js_file_data)
              return $matches[0]."'"."?$iframe_val&videodburl=https://www.imdb.com"."'"."+";
         }, $js_file_data);
     }
-
 
     // do links upper right of episode main page  
     // Cast & crew
@@ -1269,8 +1300,8 @@ function replace_javascript_lnkstop ($js_file_data)
         } 
 
     // top of page  - year, rating(eg-pg) lnks
-    //return C&&_(C.id)&&w.push({text:C.text}),C&&x(C.id)&&!R&&k&&w.push({text:`${D} ${k}`}),C&&!x(C.id)&&!R&&M&&w.push({text:M,link:i({tconst:v,refSuffix:g.Cd.RELEASE_DATE})}),L?.rating&&w.push({text:L.rating,link:n({hash:"certificates",tconst:v,refSuffix:g.Cd.PARENTAL_GUIDE        
-    $pattern = '#return \w+&&_\(\w+.id\)&&\w+.push\({text:\w+.text}\).*?PARENTAL_GUIDE#';
+    //return y&&h(y.id)&&D.push({text:y.text}),y&&T(y.id)&&!L&&O&&D.push({text:`${k} ${O}`}),y&&!T(y.id)&&!L&&j&&D.push({text:j,link:i({tconst:R,refSuffix:p.Cd.RELEASE_DATE})}),N?.rating&&D.push({text:N.rating,link:r({hash:"certificates",tconst:R,refSuffix:p.Cd.PARENTAL_GUIDE
+    $pattern = '#return .&&.\(.\.id\)&&.\.push\(\{text\:.\.text\}\).*?PARENTAL_GUIDE#';
     unset($matches);
     $js_file_data = preg_replace_callback($pattern,
                                           function ($matches) use ($iframe_val) 
@@ -1289,20 +1320,6 @@ function replace_javascript_lnkstop ($js_file_data)
                                           $js_file_data
                                          );
   
-    // interest lnks
-    //"data-testid":"interests",arrowBackgroundColorShade:"shade3",children:[E&&c?.map((e,t)=>l.jsx(w.Chip,{label:e.text,href:
-    // o({refSuffix:{t: B.Cd.GENRE,n:t+1},query:{genres:e.id.toLowerCase(),explore:"title_type,genres"}})},e.id)),p&&p.map((e,t)=>(0,l.jsx)(w.Chip,{label:e.node.primaryText?.text,href:
-    $pattern = '#("data-testid":"interests".*?href:)(.*?href:)#';
-    preg_match($pattern, $js_file_data, $matches);
-    unset($matches);
-    if (preg_match($pattern, $js_file_data, $matches))
-    {
-        $js_file_data = preg_replace($pattern,
-                                     $matches[1]."'?$iframe_val&videodburl=https://www.imdb.com"."'"."+"
-                                    .$matches[2]."'?$iframe_val&videodburl=https://www.imdb.com"."'"."+",
-                                     $js_file_data);
-    }
-    
     // creator and stars lnks near top page 
     // nameMainLinkBuilder:g}=(0,l.WO)();return i?(0,a.jsx)(a.Fragment,{children:i.map((i,s)=>{let l=t?i.grouping:i.category,c=
     $pattern = '#nameMainLinkBuilder:.*?category,.=#';
