@@ -660,7 +660,7 @@ function imdbGetCast(array $category, string $imdbID)
         $total_cast = $category['section']['total'];
 
         if ($total_cast > $pageSize) {
-            $cast = imdbCastExtra($imdbID);
+            $cast = imdbCastExtra($imdbID, $category['id']);
         } else {
             $cast = imdbCast($category['section']['items']);
         }
@@ -736,7 +736,7 @@ function imdbCast(array $items)
     return $cast;
 }
 
-function imdbCastExtra($imdbID)
+function imdbCastExtra($imdbID, $category)
 {
     global $imdbIdPrefix;
     global $CLIENTERROR;
@@ -752,8 +752,26 @@ function imdbCastExtra($imdbID)
     
     do 
     {
-        $url = 'https://caching.graphql.imdb.com/?operationName=TitleCreditSubPagePagination&variables={"after":"'.$after.'","category":"cast","const":"tt'.$imdbID.'","first":250,"locale":"en-US","originalTitleText":false,"tconst":"tt'.$imdbID.'"}&extensions={"persistedQuery":{"sha256Hash":"716fbcc1b308c56db263f69e4fd0499d4d99ce1775fb6ca75a75c63e2c86e89c","version":1}}';
+        $variables = json_encode
+                    (['after' => $after,
+                      'category' => $category,
+                      'const' => 'tt' . $imdbID,
+                      'first' => 250,
+                      'locale' => 'en-US',
+                      'originalTitleText' => false,
+                      'tconst' => 'tt' . $imdbID
+                     ]);
 
+        $extensions = json_encode
+                      (['persistedQuery' => ['sha256Hash' => '206f46cb5838734c4e1481f473330a60812313f07f36eaf9c8119a98c4cd309c',
+                                             'version' => 1]
+                       ]);
+
+        $url = 'https://caching.graphql.imdb.com/' .
+               '?operationName=TitleCreditPaginationV2WithLocale' .
+               '&variables=' . urlencode($variables) .
+               '&extensions=' . urlencode($extensions);
+        
         $resp = httpClient($url, $cache, $param);
         if (!$resp['success']) $CLIENTERROR .= $resp['error']."\n";
 
@@ -764,10 +782,10 @@ function imdbCastExtra($imdbID)
         $json_data_castextra = json_decode( $resp['data'],true);
         #file_put_contents('./cache/jsonDecoded-castextra', print_r($json_data_castextra, true));  // write formated json data to file
 
-        if (isset($json_data_castextra['data']['title']['credits']) &&
-            is_array($json_data_castextra['data']['title']['credits'])) 
+        if (isset($json_data_castextra['data']['title']['creditsV2']) &&
+            is_array($json_data_castextra['data']['title']['creditsV2'])) 
         {
-            $credits = $json_data_castextra['data']['title']['credits'];
+            $credits = $json_data_castextra['data']['title']['creditsV2'];
             // Loop through each item in the items array
             foreach ($credits['edges'] as $edge) 
             {

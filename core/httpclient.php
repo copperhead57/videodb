@@ -190,7 +190,7 @@ function httpClient($url, $cache = false, $para = null, $reload = false)
         $logTime = date('Y-m-d H:i:s') . '.' . explode(' ', microtime())[1];
         dlog("******* {$logTime} - Guzzle: url: {$url} Status: {$status}");
     }
-    
+
     // verify status code
     switch ($status)
     {
