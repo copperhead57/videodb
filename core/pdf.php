@@ -16,11 +16,7 @@ require_once './core/cache.php';
 require_once './core/export.core.php';
 require_once './engines/engines.php';
 require_once './core/VariableStream.class.php';
-
-define('FPDF', './vendor/setasign/fpdf');
-define('FPDF_FONTPATH', FPDF.'/font/');
-
-require_once FPDF.'/fpdf.php';
+require_once 'vendor/autoload.php';
 require_once './lib/fpdf2file/fpdf2file.php';
 
 /**

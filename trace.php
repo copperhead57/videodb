@@ -321,7 +321,7 @@ function fixup_HTML($html)
         $html = preg_replace_callback("#(<h1 textlength.*?>)(.*?)(</h1>)#si", 'imdb_replace_title_callback', $html);
 
         // imdb form does not accept utf8
-        $html = preg_replace("/(form\s+.*?)(>)/i", '\\1 accept-charset="ISO-8859-1" \\2', $html );
+        $html = preg_replace("/(<form\s+.*?)(>)/i", '\\1 accept-charset="ISO-8859-1" \\2', $html );
     }  
  
     return $html;

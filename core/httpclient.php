@@ -72,7 +72,7 @@ function get_response_encoding($response)
     }
 
     if ($header) {
-        $parsed = Psr7\parse_header($header);
+        $parsed = Psr7\Header::parse($header);
         if (array_key_exists('charset', $parsed[0]))
         {
             $encoding = strtolower($parsed[0]['charset']);
