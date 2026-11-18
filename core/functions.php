@@ -49,7 +49,7 @@ require_once './core/encoding.php';
 require_once './core/template.php';
 require_once './core/cache.php';
 require_once './core/compatibility.php';
-require_once './vendor/smarty/smarty/libs/SmartyBC.class.php';
+require_once 'vendor/autoload.php';
 
 /* --------------------------------------------------------------------*/
 // exception handling beyond this point
@@ -79,9 +79,34 @@ if (isset($config['debug']) && $config['debug'])
 foreach (array_keys($_ENV) as $key) unset($GLOBALS[$key]);
 
 // Smarty setup
-$smarty = new SmartyBC();
-$smarty->compile_dir     = './cache/smarty';            // path to compiled templates
-$smarty->cache_dir       = './cache/smarty';            // path to cached html
+use Smarty\Smarty;
+$smarty = new Smarty;
+$smarty->setCompileDir('./cache/smarty');            // path to compiled templates
+
+//$smarty->loadFilter('output', 'trimwhitespace');        // remove whitespace from output	
+
+$smarty->setUseSubDirs(false);                       // restrict caching to one folder
+$smarty->setCacheDir('./cache/smarty');           // path to compiled templates
+// set the cache_lifetime to 5 minutes
+$smarty->setCacheLifetime(5 * 60);
+
+// register customised smarty funtctions
+require_once './lib/smarty/custom/function.custom_html_checkbox.php';
+require_once './lib/smarty/custom/function.custom_html_image.php';
+require_once './lib/smarty/custom/function.custom_html_radios.php';
+require_once './lib/smarty/custom/function.custom_html_rating.php';
+require_once './lib/smarty/custom/function.custom_rating_input.php';
+$smarty->registerPlugin("function","custom_html_checkbox","smarty_function_custom_html_checkbox");
+$smarty->registerPlugin("function","custom_html_image","smarty_function_custom_html_image");
+$smarty->registerPlugin("function","custom_html_radios","smarty_function_custom_html_radios");
+$smarty->registerPlugin("function","custom_rating_input","smarty_function_custom_rating_input");
+$smarty->registerPlugin("function","custom_html_rating","smarty_function_custom_html_rating");
+
+// register php functions used in templates
+$smarty->registerPlugin("modifier", "floor", "floor");
+$smarty->registerPlugin("modifier", "max", "max");
+$smarty->registerPlugin("modifier", "min", "min");
+$smarty->registerPlugin("modifier", "preg_split", "preg_split");
 
 // NOTE:
 // This project currently uses SmartyBC (Smarty 2 compatibility mode).
@@ -89,21 +114,20 @@ $smarty->cache_dir       = './cache/smarty';            // path to cached html
 // on compiled templates. These settings are kept here for the future
 // migration to Smarty 4/5, where SmartyBC is removed and permissions
 // will be respected.
+// note issue with php 8.2 onwards
 //$smarty->compile_dir_permissions = 0775;
 //$smarty->cache_dir_permissions   = 0775;
 //$smarty->compile_file_permissions = 0664;
 //$smarty->cache_file_permissions   = 0664;
 
-$smarty->plugins_dir     = array('./lib/smarty/custom', './vendor/smarty/smarty/libs/plugins');
-$smarty->use_sub_dirs    = 0;                           // restrict caching to one folder
-$smarty->loadFilter('output', 'trimwhitespace');        // remove whitespace from output
+// not sure of these test latter
 #$smarty->setCaching(Smarty::CACHING_LIFETIME_SAVED);
-#$smarty->force_compile  = true;
-#$smarty->debugging      = true;
+
 if ($config['debug'])
 {
     $smarty->error_reporting = E_ALL & ~E_NOTICE;           // added for Smarty 3
     $smarty->force_compile  = true;
+    #$smarty->debugging      = true;
 }
 else
 {
@@ -308,7 +332,7 @@ function load_config($force_reload = false)
 	}
 
     // setup smarty
-    $smarty->template_dir = array($config['templatedir'], 'templates/modern');
+    $smarty->setTemplateDir(array($config['templatedir'], 'templates/modern'));
     $smarty->assign('template', $config['templatedir']);
 
     // initialize languages
